@@ -326,7 +326,7 @@ const freshState = () => ({
   prizes: Object.assign({}, DEFAULT_PRIZES),
   archive: [],
   folded: { archive: true },
-  users: DEFAULT_NAMES.map(n => ({id:uid(), name:n, day:1, doneDay:null, doneDate:null, active:true}))
+  users: DEFAULT_NAMES.map(n => ({id:uid(), name:n, day:1, doneDay:null, doneDate:null, active:true, dayDate:gameDay()}))
 });
 let state = freshState();
 let saveTimer = null, lastDay = gameDay(), tagEdit = false;
@@ -366,9 +366,20 @@ function save(){
 }
 
 /* ============ daily rollover ============ */
+function dayDiff(a, b){
+  const pa = a.split('-').map(Number), pb = b.split('-').map(Number);
+  return Math.round((Date.UTC(pb[0],pb[1]-1,pb[2]) - Date.UTC(pa[0],pa[1]-1,pa[2])) / 86400000);
+}
 function rollover(){
   const t = gameDay();
-  state.users.forEach(u => { if (u.doneDate && u.doneDate < t && u.doneDay === u.day) u.day++; });
+  state.users.forEach(u => {
+    if (!u.dayDate){ u.dayDate = t; return; }
+    if (u.dayDate < t){
+      u.day = Math.min(TOTAL + 1, u.day + dayDiff(u.dayDate, t));
+      u.dayDate = t;
+      u.doneDay = null; u.doneDate = null;
+    }
+  });
 }
 
 /* ============ render ============ */
@@ -421,14 +432,13 @@ function render(){
   let tomorrow = '';
   if (running.length){
     const rows = running.map(u => {
-      const nd = doneToday(u) ? u.day+1 : u.day;
+      const nd = u.day + 1;
       const over = nd > TOTAL;
       return '<tr><td>'+token(u)+'</td>'+
         '<td>'+(over ? '<span class="fin">סיום</span>' : cardMark(nd,false,false))+'</td>'+
-        '<td dir="auto">'+(over ? 'כל 30 המשימות הושלמו' : esc(taskName(nd))+' '+badge(nd,false))+'</td>'+
-        '<td>'+(doneToday(u) || over ? '' : '<span class="flag">אם המשימה של היום לא תושלם</span>')+'</td></tr>';
+        '<td dir="auto">'+(over ? 'כל 30 המשימות הושלמו' : esc(taskName(nd))+' '+badge(nd,false))+'</td></tr>';
     }).join('');
-    tomorrow = '<div class="panel pad"><table><thead><tr><th>חשבון</th><th>יום</th><th>המשימה</th><th></th></tr></thead>'+
+    tomorrow = '<div class="panel pad"><table><thead><tr><th>חשבון</th><th>יום</th><th>המשימה</th></tr></thead>'+
       '<tbody>'+rows+'</tbody></table></div>';
   } else {
     tomorrow = '<div class="empty">יופיע כאן ברגע שיהיו חשבונות פעילים.</div>';
@@ -541,13 +551,13 @@ document.addEventListener('click', e => {
   if (act === 'add'){
     const i = document.getElementById('newName'), name = (i.value||'').trim();
     if (!name){ i.focus(); return; }
-    state.users.push({id:uid(), name, day:1, doneDay:null, doneDate:null, active:true});
+    state.users.push({id:uid(), name, day:1, doneDay:null, doneDate:null, active:true, dayDate:gameDay()});
   }
   else if (act === 'flip' && u){ if (doneToday(u)){ u.doneDay=null; u.doneDate=null; } else { u.doneDay=u.day; u.doneDate=gameDay(); } }
   else if (act === 'done' && u){ u.doneDay = u.day; u.doneDate = gameDay(); }
   else if (act === 'undo' && u){ u.doneDay = null; u.doneDate = null; }
-  else if (act === 'plus'  && u){ u.day = Math.min(TOTAL+1, u.day+1); u.doneDay = null; u.doneDate = null; }
-  else if (act === 'minus' && u){ u.day = Math.max(1, u.day-1); u.doneDay = null; u.doneDate = null; }
+  else if (act === 'plus'  && u){ u.day = Math.min(TOTAL+1, u.day+1); u.doneDay = null; u.doneDate = null; u.dayDate = gameDay(); }
+  else if (act === 'minus' && u){ u.day = Math.max(1, u.day-1); u.doneDay = null; u.doneDate = null; u.dayDate = gameDay(); }
   else if (act === 'toggle'&& u){ u.active = u.active === false; }
   else if (act === 'del'   && u){
     if (!confirm('למחוק את "'+u.name+'"?')) return;
@@ -565,7 +575,7 @@ document.addEventListener('click', e => {
     const a = (state.archive||[]).find(x => x.id === b.dataset.id);
     if (!a) return;
     state.users.push({ id: uid(), name: a.name, day: Math.min(TOTAL, Math.max(1, a.day||1)),
-      doneDay: null, doneDate: null, active: true, money: a.deposited, balance: null });
+      doneDay: null, doneDate: null, active: true, money: a.deposited, balance: null, dayDate: gameDay() });
     state.archive = state.archive.filter(x => x.id !== a.id);
   }
   else if (act === 'fold'){
@@ -643,7 +653,7 @@ document.addEventListener('change', e => {
       let n = parseInt(el.value, 10);
       if (isNaN(n)) n = u.day;
       u.day = Math.min(TOTAL, Math.max(1, n));
-      u.doneDay = null; u.doneDate = null;
+      u.doneDay = null; u.doneDate = null; u.dayDate = gameDay();
       save(); render();
     }
   }
