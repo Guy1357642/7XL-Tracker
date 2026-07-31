@@ -275,7 +275,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v19';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v20';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 const DAY_START_HOUR = 3;               /* המשימה מתחלפת ב-03:00 */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -448,7 +448,7 @@ async function load(){
       state.flags = Object.assign({}, DEFAULT_FLAGS);
       state.flagVer = FLAG_VERSION;
     }
-    if (p.currency) state.currency = p.currency;
+    state.currency = '$';
     state.archive = Array.isArray(p.archive) ? p.archive : [];
     state.tickets = Array.isArray(p.tickets) ? p.tickets : [];
     state.msVer = p.msVer || 1;
@@ -649,8 +649,7 @@ function render(){
     H('today','\u2665','המשימות של היום',1)+ (isFolded('today') ? '' : todayHtml)+
     H('tomorrow','\u2666','המשימות של מחר',1)+ (isFolded('tomorrow') ? '' : tomorrow)+
     H('accounts','\u2663','החשבונות')+ (isFolded('accounts') ? '' : usersHtml)+
-    H('finance', esc(state.currency), 'Finance', 0,
-      '<button class="ghost cream" data-act="cur" style="flex:none">שינוי מטבע</button>')+
+    H('finance', esc(state.currency), 'Finance')+
       (isFolded('finance') ? '' : moneyHtml)+
     H('archive','\u2663','Archive ('+(state.archive||[]).length+')')+
       (isFolded('archive') ? '' : archHtml)+
@@ -736,10 +735,6 @@ document.addEventListener('click', e => {
     state.folded = state.folded || {};
     state.folded[sec] = !state.folded[sec];
     save(); render(); return;
-  }
-  else if (act === 'cur'){
-    const list = ['\u20AA','$','\u20AC'];
-    state.currency = list[(list.indexOf(state.currency)+1) % list.length];
   }
   else if (act === 'tagmode'){ tagEdit = !tagEdit; render(); return; }
   else if (act === 'flag'){
