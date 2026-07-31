@@ -239,6 +239,9 @@
     border:1px solid var(--line);border-radius:8px;padding:6px 7px;background:#fff;color:var(--ink);
     font-variant-numeric:tabular-nums}
   .u-note{margin:0 0 9px;font-family:inherit;font-size:13.5px}
+  .u-line{display:flex;align-items:center;gap:9px;margin:0 0 10px}
+  .u-line .u-task{margin:0;flex:none;max-width:56%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .u-line .u-note{flex:1;min-width:0;margin:0}
   .u-mail-row{display:flex;align-items:center;gap:7px;margin:0 0 9px}
   .u-mail-row .mail-in{flex:1}
   .u-head .u-name{flex:0 0 74px}
@@ -279,7 +282,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v21';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v22';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -371,6 +374,15 @@ function buildPrizeMap(){
 }
 const dayOfN = n => { for (const d in pmap) if (pmap[d].n === Number(n)) return Number(d); return 0; };
 const prizeOf = d => (pmap[d] ? pmap[d].text : '');
+const noteInput = u => '<input class="mail-in u-note" data-act="u-note" data-id="'+u.id+'" '+
+  'value="'+esc(u.notes||'')+'" placeholder="הערות" aria-label="הערות לחשבון">';
+/* פרס במזומן, כמו C$4 או $14 T$, נחשב כנוצל מיד */
+const isCashPrize = t => String(t).replace(/[ct]\$/gi,'').replace(/\$/g,'').replace(/[\d.,\s]/g,'').length === 0;
+/* הסימון נשמר עם שם הפרס, כך שפרס שהתחלף לא ייחשב כנוצל */
+function prizeUsed(u, pz){
+  if (isCashPrize(pz.text)) return true;
+  return (u.used||[]).some(x => (x && typeof x === 'object') ? (x.n === pz.n && x.t === pz.text) : x === pz.n);
+}
 function earnedPrizes(u){
   const out = [];
   for (let d = 1; d <= TOTAL; d++){
@@ -576,15 +588,19 @@ function render(){
       (fin
         ? '<div class="done30"><span>\u2714 החשבון סיים את כל 30 המשימות</span>'+
           '<button class="b-gold" data-act="archive" data-id="'+u.id+'">העבר לארכיון</button></div>'
-        : '<p class="u-task" dir="auto">'+esc(taskName(u.day))+' '+badge(u.day,false)+'</p>')+
+          + noteInput(u)
+        : '<div class="u-line"><span class="u-task" dir="auto">'+esc(taskName(u.day))+' '+badge(u.day,false)+'</span>'+
+          noteInput(u)+'</div>')+
       (() => {
-        const all = earnedPrizes(u), mark = u.used || [];
+        const all = earnedPrizes(u);
         const line = (pz, used) => '<div class="pz'+(used?' used':'')+'">'+
           '<span class="t">'+(used?'נוצל':'זמין')+': <b dir="ltr">'+esc(pz.text)+'</b></span>'+
-          '<button class="mini sm'+(used?' ok':'')+'" data-act="pz" data-id="'+u.id+'" data-n="'+pz.n+'">'+
-          (used?'\u2713 Done':'To Do')+'</button></div>';
-        const open_ = all.filter(x => mark.indexOf(x.n) === -1);
-        const done_ = all.filter(x => mark.indexOf(x.n) > -1);
+          (isCashPrize(pz.text)
+            ? '<span class="ok">אוטומטי</span>'
+            : '<button class="mini sm'+(used?' ok':'')+'" data-act="pz" data-id="'+u.id+'" data-n="'+pz.n+'">'+
+              (used?'\u2713 Done':'To Do')+'</button>')+'</div>';
+        const open_ = all.filter(x => !prizeUsed(u,x));
+        const done_ = all.filter(x =>  prizeUsed(u,x));
         const show = !!pzOpen[u.id];
         return open_.map(x => line(x,false)).join('')+
           (done_.length ? '<div class="pz"><span class="t" style="opacity:.6">נוצלו '+done_.length+' פרסים</span>'+
@@ -596,8 +612,6 @@ function render(){
             'data-act="u-mail" data-id="'+u.id+'" value="'+esc(u.email||'')+'" placeholder="email" aria-label="אימייל של החשבון">'+
           '<button class="mini sm" data-act="u-mail-done" data-id="'+u.id+'">הוסף אימייל</button></div>'
         : '')+
-      '<input class="mail-in u-note" data-act="u-note" data-id="'+u.id+'" value="'+esc(u.notes||'')+'" '+
-        'placeholder="הערות" aria-label="הערות לחשבון">'+
       '<div class="u-act">'+
         (fin ? '' : '<button class="mini'+(dn?' ok':'')+'" data-act="flip" data-id="'+u.id+'">'+
           (dn?'<b>\u2713</b> Done':'To Do')+'</button>')+
@@ -666,7 +680,8 @@ function render(){
       (isFolded('finance') ? '' : moneyHtml)+
     H('archive','\u2663','Archive ('+(state.archive||[]).length+')')+
       (isFolded('archive') ? '' : archHtml)+
-    '<footer><span>גרסה '+BUILD+' \u00B7 הנתונים נשמרים אוטומטית בדפדפן הזה.</span>'+
+    '<footer><span>גרסה '+BUILD+' \u00B7 הנתונים נשמרים בדפדפן הזה.'+
+      (state.lastBackup ? ' גיבוי אחרון: '+esc(state.lastBackup)+'.' : ' עוד לא גיבית.')+'</span>'+
       '<button class="ghost cream" data-act="backup">גיבוי</button>'+
       '<button class="ghost cream" data-act="restore">שחזור</button>'+
       '<button class="ghost cream" data-act="reset">אפס הכל</button></footer>';
@@ -713,9 +728,10 @@ document.addEventListener('click', e => {
   else if (act === 'pz-more'){ pzOpen[b.dataset.id] = !pzOpen[b.dataset.id]; render(); return; }
   else if (act === 'pz' && u){
     const n = Number(b.dataset.n);
+    const txt = Object.keys(pmap).map(d => pmap[d]).filter(x => x.n === n).map(x => x.text)[0] || '';
     u.used = u.used || [];
-    const i = u.used.indexOf(n);
-    if (i > -1) u.used.splice(i, 1); else u.used.push(n);
+    const at = u.used.findIndex(x => (x && typeof x === 'object') ? (x.n === n && x.t === txt) : x === n);
+    if (at > -1) u.used.splice(at, 1); else u.used.push({ n: n, t: txt });
   }
   else if (act === 'u-mail-done' && u){
     if (!String(u.email||'').trim()) return;
@@ -759,17 +775,37 @@ document.addEventListener('click', e => {
     else state.flags[d] = 'hard';
   }
   else if (act === 'backup'){
-    prompt('העתיקו את הטקסט הזה ושמרו אותו. אפשר להדביק אותו ב"שחזור" בכל מכשיר אחר.', JSON.stringify(state));
+    try {
+      const blob = new Blob([JSON.stringify(state, null, 1)], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '7XL-backup-' + gameDay() + '.json';
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+      state.lastBackup = gameDay(); save(); render();
+    } catch(e){ prompt('העתיקו את הטקסט ושמרו אותו:', JSON.stringify(state)); }
     return;
   }
   else if (act === 'restore'){
-    const txt = prompt('הדביקו כאן טקסט גיבוי:');
-    if (!txt) return;
-    try {
-      const p = JSON.parse(txt);
-      if (!Array.isArray(p.tasks) || !Array.isArray(p.users)) throw 0;
-      state = p;
-    } catch(err){ alert('הטקסט אינו גיבוי תקין.'); return; }
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'application/json,.json';
+    inp.addEventListener('change', () => {
+      const f = inp.files && inp.files[0];
+      if (!f) return;
+      const rd = new FileReader();
+      rd.onload = () => {
+        try {
+          const q = JSON.parse(String(rd.result));
+          if (!Array.isArray(q.tasks) || !Array.isArray(q.users)) throw 0;
+          if (!confirm('לשחזר את הגיבוי? הנתונים הקיימים במכשיר יוחלפו.')) return;
+          state = q; save(); render();
+        } catch(err){ alert('הקובץ אינו גיבוי תקין.'); }
+      };
+      rd.readAsText(f);
+    });
+    inp.click();
+    return;
   }
   else if (act === 'reset'){
     if (!confirm('להחזיר את כל החשבונות ליום 1 ואת שמות המשימות למקור?')) return;
