@@ -239,9 +239,10 @@
     border:1px solid var(--line);border-radius:8px;padding:6px 7px;background:#fff;color:var(--ink);
     font-variant-numeric:tabular-nums}
   .u-note{margin:0 0 9px;font-family:inherit;font-size:13.5px}
-  .u-line{display:flex;align-items:center;gap:9px;margin:0 0 10px}
-  .u-line .u-task{margin:0;flex:none;max-width:56%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .u-line .u-note{flex:1;min-width:0;margin:0}
+  .u-line{display:flex;align-items:center;gap:8px;margin:0 0 10px}
+  .u-line .u-task{margin:0;flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .u-line .badge{flex:none}
+  .u-line .u-note{flex:1 1 84px;min-width:0;margin:0}
   .u-mail-row{display:flex;align-items:center;gap:7px;margin:0 0 9px}
   .u-mail-row .mail-in{flex:1}
   .u-head .u-name{flex:0 0 74px}
@@ -282,7 +283,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v22';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v23';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -589,8 +590,8 @@ function render(){
         ? '<div class="done30"><span>\u2714 החשבון סיים את כל 30 המשימות</span>'+
           '<button class="b-gold" data-act="archive" data-id="'+u.id+'">העבר לארכיון</button></div>'
           + noteInput(u)
-        : '<div class="u-line"><span class="u-task" dir="auto">'+esc(taskName(u.day))+' '+badge(u.day,false)+'</span>'+
-          noteInput(u)+'</div>')+
+        : '<div class="u-line"><span class="u-task" dir="auto">'+esc(taskName(u.day))+'</span>'+
+          badge(u.day,false)+noteInput(u)+'</div>')+
       (() => {
         const all = earnedPrizes(u);
         const line = (pz, used) => '<div class="pz'+(used?' used':'')+'">'+
