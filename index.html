@@ -268,7 +268,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v15';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v16';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 const DAY_START_HOUR = 3;               /* המשימה מתחלפת ב-03:00 */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -277,12 +277,35 @@ const CHIPS = ['#B3202C','#1B4F8A','#1E6B4A','#26262A','#EFE9DC','#5E3A86','#C27
 /* המשימות החדשות של המשחק, לפי מספר היום. מוסיפים לכאן בכל פעם שמתגלה עוד אחת */
 const KNOWN_TASKS = {
   1:'50 R&C Hands',
+  2:'100 Holdem Hands',
   3:'50 R&C Hands',
+  4:'75 R&C Hands',
+  5:'10 S&G',
   6:'S&G X3',
   7:'50 Hands AoF',
+  8:'150 AoF Hands',
+  9:'200 Holdem Hands',
+  10:'Win a Hand with Quads',
   11:'125 R&C Hands',
   12:'150 R&C Hands',
-  27:'450 R&C Hands'
+  13:'Play a Bounty Hunter',
+  14:'250 R&C Hands',
+  15:'20 S&G',
+  16:'Win 3 S&G in a Row',
+  17:'150 Short Deck Hands',
+  18:'Win a Daily Guarantee',
+  19:'300 R&C Hands',
+  20:'100 PLO Hands',
+  21:'Win with a Straight Flush',
+  22:'350 R&C Hands',
+  23:'30 S&G',
+  24:'200 AoF Hands',
+  25:'AA in AoF',
+  26:'Win a Bounty Hunter',
+  27:'450 R&C Hands',
+  28:'400 R&C Hands',
+  29:'500 R&C Hands',
+  30:'Win an AoF Jackpot'
 };
 const DEFAULT_TASKS = Array.from({length:30}, (_, i) => KNOWN_TASKS[i+1] || '');
 /* המצב הנוכחי שלך, כברירת מחדל למכשיר חדש או אחרי איפוס */
@@ -291,8 +314,16 @@ const DEFAULT_TASKS = Array.from({length:30}, (_, i) => KNOWN_TASKS[i+1] || '');
 const DEFAULT_ACCOUNTS = [];
 const DEFAULT_ARCHIVE = [];
 /* כל המשימות מתחילות כ-Easy, ומשנים ידנית ל-Hard או Do Not Do */
-const FLAG_VERSION = 1;
-const DEFAULT_FLAGS = (() => { const f = {}; for (let d = 1; d <= 30; d++) f[d] = 'easy'; return f; })();
+const FLAG_VERSION = 2;
+const HARD_DAYS = [10,16,21,25,29];
+const NO_DAYS   = [13,18,22,26,30];
+const DEFAULT_FLAGS = (() => {
+  const f = {};
+  for (let d = 1; d <= 30; d++) f[d] = 'easy';
+  HARD_DAYS.forEach(d => f[d] = 'hard');
+  NO_DAYS.forEach(d => f[d] = 'no');
+  return f;
+})();
 const FLAG_TEXT = {hard:'Hard', easy:'Easy', no:'Do Not Do'};
 /* המפתח הוא מספר המשימות שהושלמו, לא מספר היום */
 /* איזה כרטיס טורניר מגיע מאיזה פרס. פרסים במזומן אינם טורניר */
@@ -430,7 +461,7 @@ async function load(){
     /* פעם אחת: כל יום בלי תגית מקבל Easy, בלי לגעת במה שסימנת */
     state.flagVer = p.flagVer || 0;
     if (state.flagVer < FLAG_VERSION){
-      for (let d = 1; d <= TOTAL; d++) if (!state.flags[d]) state.flags[d] = 'easy';
+      state.flags = Object.assign({}, DEFAULT_FLAGS);   /* ניסוי: החלפה מלאה */
       state.flagVer = FLAG_VERSION;
     }
     if (p.currency) state.currency = p.currency;
