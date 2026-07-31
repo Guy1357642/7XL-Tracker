@@ -111,8 +111,8 @@
     box-shadow:inset 3px 0 0 var(--violet)}
   .q-row.live.ldone{background:linear-gradient(90deg,rgba(201,162,39,.22),rgba(201,162,39,.06));
     box-shadow:inset 3px 0 0 var(--brass)}
-  .q-name{flex:1;min-width:0;border:0;background:transparent;font-family:inherit;font-size:15px;color:var(--ink);
-    padding:5px 2px;border-bottom:1px solid transparent}
+  .q-name{flex:1;min-width:0;border:0;background:transparent;font-family:inherit;font-size:15px;font-weight:700;
+    color:var(--ink);padding:5px 2px;border-bottom:1px solid transparent}
   .q-name:focus{border-bottom-color:var(--money);outline:none}
   .q-mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
   .q-mid .q-name{width:100%}
@@ -154,7 +154,7 @@
   .badge.off{color:var(--soft);border-color:var(--line);border-style:dashed;background:transparent}
 
   .head-row{display:flex;align-items:center;gap:11px;margin-bottom:4px}
-  .head-row .t{font-weight:700;flex:1;min-width:0}
+  .head-row .t{font-weight:700;font-size:16px;flex:1;min-width:0}
   .p-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px dashed rgba(26,38,32,.18)}
   .p-row .n{flex:1;font-weight:700}
   .ok{font-size:13px;font-weight:700;color:var(--money)}
@@ -183,7 +183,7 @@
   .u-name{border:0;background:transparent;font-family:inherit;font-weight:700;font-size:18px;color:var(--ink);
     flex:1;min-width:0;padding:2px}
   .u-name:focus{border-bottom:1px solid var(--money);outline:none}
-  .u-task{font-size:14px;color:var(--soft);margin:0 0 10px}
+  .u-task{font-size:14.5px;font-weight:700;color:var(--ink);margin:0 0 10px}
   .u-act{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
   .spacer{flex:1}
   .paused{opacity:.55}
@@ -261,7 +261,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v10';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v11';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 const DAY_START_HOUR = 3;               /* המשימה מתחלפת ב-03:00 */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -269,13 +269,13 @@ const CHIPS = ['#B3202C','#1B4F8A','#1E6B4A','#26262A','#EFE9DC','#5E3A86','#C27
 
 /* המשימות החדשות של המשחק, לפי מספר היום. מוסיפים לכאן בכל פעם שמתגלה עוד אחת */
 const KNOWN_TASKS = {
-  1:'50 Rush and Cash Hands',
-  3:'50 Rush and Cash',
+  1:'50 R&C Hands',
+  3:'50 R&C Hands',
   6:'Spin and Gold X3',
   7:'50 Hands AoF',
-  11:'125 Rush and Cash Hands',
-  12:'150 Rush & Cash hands',
-  27:'450 Rush & Cash hands'
+  11:'125 R&C Hands',
+  12:'150 R&C Hands',
+  27:'450 R&C Hands'
 };
 const DEFAULT_TASKS = Array.from({length:30}, (_, i) => KNOWN_TASKS[i+1] || '');
 /* המצב הנוכחי שלך, כברירת מחדל למכשיר חדש או אחרי איפוס */
