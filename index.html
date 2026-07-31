@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0C4433">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>7XL Tracker</title>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -100,6 +103,8 @@
   ol.q{list-style:none;margin:0;padding:0}
   .q-row{display:flex;align-items:center;gap:9px;padding:8px 6px;border-bottom:1px dashed rgba(26,38,32,.16)}
   .q-row:last-child{border-bottom:0}
+  .q-row.unknown:not(.live){background:rgba(176,42,42,.08);border-radius:10px;box-shadow:inset 3px 0 0 rgba(176,42,42,.45)}
+  .q-row.unknown .q-name::placeholder{color:#A3242F;opacity:.85;font-weight:700}
   .q-row.live{border-radius:12px;background:linear-gradient(90deg,rgba(201,162,39,.22),rgba(201,162,39,.06));
     box-shadow:inset 3px 0 0 var(--brass)}
   .q-name{flex:1;min-width:0;border:0;background:transparent;font-family:inherit;font-size:15px;color:var(--ink);
@@ -257,21 +262,24 @@ const CHIPS = ['#B3202C','#1B4F8A','#1E6B4A','#26262A','#EFE9DC','#5E3A86','#C27
 
 /* המשימות החדשות של המשחק, לפי מספר היום. מוסיפים לכאן בכל פעם שמתגלה עוד אחת */
 const KNOWN_TASKS = {
-  2:'50 Rush & Cash hands',
+  3:'50 Rush and Cash',
+  6:'Spin and Gold X3',
+  7:'50 Hands AoF',
+  11:'125 Rush and Cash Hands',
   12:'150 Rush & Cash hands',
   27:'450 Rush & Cash hands'
 };
 const DEFAULT_TASKS = Array.from({length:30}, (_, i) => KNOWN_TASKS[i+1] || '');
 /* המצב הנוכחי שלך, כברירת מחדל למכשיר חדש או אחרי איפוס */
 const DEFAULT_ACCOUNTS = [
-  { name:'8',  day:31, money:20, balance:85 },   /* סיים 30 ימים */
   { name:'9',  day:27, money:20, balance:35 },
   { name:'10', day:12, money:20, balance:15 },
   { name:'11', day:11, money:20, balance:16 },
   { name:'2',  day:3,  money:30, balance:0  }
 ];
 const DEFAULT_ARCHIVE = [
-  { name:'7', email:'Liorlavi7@proton.me', deposited:30, profit:170, day:30 }
+  { name:'7', email:'Liorlavi7@proton.me', deposited:30, profit:170, day:30 },
+  { name:'8', email:'Liorlavi8@proton.me', deposited:20, profit:65,  day:30 }
 ];
 const DEFAULT_FLAGS = {};   /* תגיות Hard / Do Not Do נקבעות ביד */
 const FLAG_TEXT = {hard:'Hard', no:'Do Not Do'};
@@ -282,11 +290,13 @@ const isCash = t => /^[cC]?\$\s?[\d.,]+$/.test(String(t).trim());
 const STEP_CHAIN = ['WSOP Step 1','WSOP Step 2','WSOP Step 3','WSOP Step 4'];
 const ALWAYS_TOURS = ['Daily','Weekly','Other'];
 /* אבני הדרך של המשחק: כמה משימות צריך, ומה הפרס. הכל ניתן לעריכה באפליקציה */
+const MILESTONE_VERSION = 2;   /* מעלים את המספר בכל פעם שהמשחק משנה את הפרסים */
 const DEFAULT_MILESTONES = [
-  { n:3,  text:'2 x $0.50 WSOP Express: Step 1' },
-  { n:5,  text:'1 x $2.50 GGMasters Satellite' },
-  { n:7,  text:'7 x $0.50 WSOP Express: Step 1' },
-  { n:10, text:'1 x $5 The Weekender Omaholic Satellite' },
+  { n:3,  text:'3 x Spin & Gold $1' },
+  { n:5,  text:'C$4' },
+  { n:7,  text:'C$6' },
+  { n:9,  text:'C$7' },
+  { n:11, text:'C$8' },
   { n:14, text:'1 x $10 WSOP Express: Step 3' },
   { n:16, text:'C$15' },
   { n:19, text:'C$20' },
@@ -367,6 +377,7 @@ const freshState = () => ({
   currency: '$',
   archive: DEFAULT_ARCHIVE.map(a => Object.assign({ id: uid() }, a)),
   tickets: [],
+  msVer: MILESTONE_VERSION,
   milestones: DEFAULT_MILESTONES.map(m => ({ id: uid(), n: m.n, text: m.text })),
   folded: { archive: true },
   users: DEFAULT_ACCOUNTS.map(a => ({id:uid(), name:a.name, day:a.day, doneDay:null, doneDate:null,
@@ -405,9 +416,11 @@ async function load(){
     if (p.currency) state.currency = p.currency;
     state.archive = Array.isArray(p.archive) ? p.archive : [];
     state.tickets = Array.isArray(p.tickets) ? p.tickets : [];
-    state.milestones = (Array.isArray(p.milestones) && p.milestones.length)
+    state.msVer = p.msVer || 1;
+    state.milestones = (Array.isArray(p.milestones) && p.milestones.length && state.msVer >= MILESTONE_VERSION)
       ? p.milestones
       : DEFAULT_MILESTONES.map(m => ({ id: uid(), n: m.n, text: m.text }));
+    state.msVer = MILESTONE_VERSION;
     state.folded = (p.folded && typeof p.folded === 'object') ? p.folded : { archive: true };
   } catch(e){ /* נתונים פגומים: נשארים עם ברירת המחדל */ }
 }
@@ -453,8 +466,9 @@ function render(){
     const many = here.length > 1;
     const btns = here.map(u => '<button class="mini'+(doneToday(u)?' ok':'')+'" data-act="flip" data-id="'+u.id+'">'+
       (doneToday(u)?'<b>\u2713</b> Done':'To Do')+(many?' '+esc(u.name):'')+'</button>').join('');
-    list += '<li class="q-row'+(here.length?' live':'')+'">'+cardMark(d,false,here.length>0)+btns+
-      '<span class="q-mid"><input class="q-name" dir="auto" data-act="task" data-day="'+d+'" value="'+esc(state.tasks[d-1]||'')+'" placeholder="משימה '+d+'" aria-label="שם המשימה ליום '+d+'">'+prizeLine(d)+'</span>'+
+    const unknown = !String(state.tasks[d-1]||'').trim();
+    list += '<li class="q-row'+(here.length?' live':'')+(unknown?' unknown':'')+'">'+cardMark(d,false,here.length>0)+btns+
+      '<span class="q-mid"><input class="q-name" dir="auto" data-act="task" data-day="'+d+'" value="'+esc(state.tasks[d-1]||'')+'" placeholder="Unknown" aria-label="שם המשימה ליום '+d+'">'+prizeLine(d)+'</span>'+
       badge(d, tagEdit)+'<span class="tokens">'+toks+'</span></li>';
   }
   const listPanel = '<div class="panel"><ol class="q">'+list+'</ol>'+
@@ -579,22 +593,6 @@ function render(){
     ((state.tickets||[]).length ? tkRows : '<p class="muted" style="margin:8px 2px 2px;font-size:13.5px;opacity:.75">אין טורנירים מתוכננים.</p>')+
     '</div>';
 
-  /* 4.7 · Milestones */
-  const msRows = (state.milestones||[]).slice()
-    .sort((a,b) => (parseInt(a.n,10)||99) - (parseInt(b.n,10)||99))
-    .map(m => {
-      const d = dayOfN(m.n);
-      return '<div class="ms-row">'+
-        '<input class="fin-in ms-n" type="number" inputmode="numeric" min="1" max="'+TOTAL+'" data-act="ms-n" data-id="'+m.id+'" value="'+esc(m.n)+'" aria-label="מספר משימות">'+
-        '<input class="sel ms-t" dir="ltr" data-act="ms-t" data-id="'+m.id+'" value="'+esc(m.text||'')+'" placeholder="שם הפרס" aria-label="הפרס">'+
-        '<span class="when'+(d?'':' hide')+'">יום '+(d||'')+'</span>'+
-        '<button class="ghost" data-act="ms-del" data-id="'+m.id+'">מחק</button></div>';
-    }).join('');
-  const msHtml = '<div class="panel pad">'+
-    '<p style="margin:0 2px 9px;font-size:12px;opacity:.7">מספר המשימות שצריך להשלים, ומה הפרס. היום שבו הפרס נופל מחושב לבד לפי הדילוגים.</p>'+
-    '<div class="add"><button class="b-gold" data-act="ms-add">הוסף פרס</button></div>'+
-    ((state.milestones||[]).length ? msRows : '')+'</div>';
-
   /* 5 · Finance */
   const cur = state.currency;
   const num = v => (v==null||v==='') ? '' : v;
@@ -640,7 +638,6 @@ function render(){
       '<button class="ghost cream" data-act="clear-tasks">נקה שמות ותגיות</button></p>'+ listPanel)+
     H('today','\u2665','המשימות של היום',1)+ (isFolded('today') ? '' : todayHtml)+
     H('tomorrow','\u2666','המשימות של מחר',1)+ (isFolded('tomorrow') ? '' : tomorrow)+
-    H('milestones','\u2666','Milestones')+ (isFolded('milestones') ? '' : msHtml)+
     H('tickets','\u2660','Expected tournaments')+ (isFolded('tickets') ? '' : ticketsHtml)+
     H('accounts','\u2663','החשבונות')+ (isFolded('accounts') ? '' : usersHtml)+
     H('finance', esc(state.currency), 'Finance', 0,
@@ -746,14 +743,6 @@ document.addEventListener('click', e => {
       doneDay: null, doneDate: null, active: true, money: a.deposited, balance: null, dayDate: gameDay() });
     state.archive = state.archive.filter(x => x.id !== a.id);
   }
-  else if (act === 'ms-add'){
-    state.milestones = state.milestones || [];
-    state.milestones.push({ id: uid(), n: '', text: '' });
-    state.folded = state.folded || {}; state.folded.milestones = false;
-  }
-  else if (act === 'ms-del'){
-    state.milestones = (state.milestones||[]).filter(x => x.id !== b.dataset.id);
-  }
   else if (act === 'clear-tasks'){
     if (!confirm('לנקות את כל שמות המשימות ואת כל התגיות?')) return;
     state.tasks = Array(TOTAL).fill('');
@@ -822,12 +811,12 @@ document.addEventListener('click', e => {
 document.addEventListener('input', e => {
   const el = e.target;
   if (!el.dataset) return;
-  if (el.dataset.act === 'task'){ state.tasks[Number(el.dataset.day)-1] = el.value; save(); }
-  if (el.dataset.act === 'ms-n' || el.dataset.act === 'ms-t'){
-    const m = (state.milestones||[]).find(x => x.id === el.dataset.id);
-    if (m){
-      if (el.dataset.act === 'ms-n') m.n = el.value; else m.text = el.value;
-      save();
+  if (el.dataset.act === 'task'){
+    state.tasks[Number(el.dataset.day)-1] = el.value;
+    save();
+    if (el.closest){
+      const row = el.closest('.q-row');
+      if (row) row.classList.toggle('unknown', !el.value.trim());
     }
   }
   if (el.dataset.act === 't-date' || el.dataset.act === 't-time'){
@@ -895,7 +884,7 @@ document.addEventListener('keydown', e => {
 /* מיון מחדש רק אחרי שהעריכה נגמרה, כדי שהבורר של התאריך לא ייסגר */
 let tkTimer = null;
 const isTk = el => el && el.dataset &&
-  ['t-date','t-time','ms-n','ms-t'].indexOf(el.dataset.act) > -1;
+  ['t-date','t-time'].indexOf(el.dataset.act) > -1;
 document.addEventListener('focusin', e => { if (isTk(e.target)) clearTimeout(tkTimer); });
 document.addEventListener('focusout', e => {
   if (!isTk(e.target)) return;
