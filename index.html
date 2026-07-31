@@ -277,16 +277,10 @@ const KNOWN_TASKS = {
 };
 const DEFAULT_TASKS = Array.from({length:30}, (_, i) => KNOWN_TASKS[i+1] || '');
 /* המצב הנוכחי שלך, כברירת מחדל למכשיר חדש או אחרי איפוס */
-const DEFAULT_ACCOUNTS = [
-  { name:'9',  day:27, money:20, balance:35 },
-  { name:'10', day:12, money:20, balance:15 },
-  { name:'11', day:11, money:20, balance:16 },
-  { name:'2',  day:3,  money:30, balance:0  }
-];
-const DEFAULT_ARCHIVE = [
-  { name:'7', email:'Liorlavi7@proton.me', deposited:30, profit:170, day:30 },
-  { name:'8', email:'Liorlavi8@proton.me', deposited:20, profit:65,  day:30 }
-];
+/* מכשיר חדש מתחיל ריק, וכל אחד מוסיף את החשבונות שלו.
+   הנתונים נשמרים במכשיר, ולכן עדכון של הקובץ לא נוגע בהם */
+const DEFAULT_ACCOUNTS = [];
+const DEFAULT_ARCHIVE = [];
 /* כל המשימות מתחילות כ-Easy, ומשנים ידנית ל-Hard או Do Not Do */
 const FLAG_VERSION = 1;
 const DEFAULT_FLAGS = (() => { const f = {}; for (let d = 1; d <= 30; d++) f[d] = 'easy'; return f; })();
