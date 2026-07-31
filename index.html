@@ -235,6 +235,7 @@
   .fin-in{width:74px;text-align:left;direction:ltr;font-family:"Rubik",sans-serif;font-weight:700;font-size:14px;
     border:1px solid var(--line);border-radius:8px;padding:6px 7px;background:#fff;color:var(--ink);
     font-variant-numeric:tabular-nums}
+  .u-mail{margin:0 0 9px}
   .mail-in{width:100%;min-width:90px;direction:ltr;font-family:inherit;font-size:13px;
     border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff;color:var(--ink)}
   .pl{font-family:"Rubik",sans-serif;font-weight:700;font-variant-numeric:tabular-nums;font-size:14px}
@@ -269,7 +270,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v17';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v18';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 const DAY_START_HOUR = 3;               /* המשימה מתחלפת ב-03:00 */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -571,6 +572,8 @@ function render(){
             '<button class="ghost" data-act="pz-more" data-id="'+u.id+'">'+(show?'הסתר':'הצג')+'</button></div>'+
             (show ? done_.map(x => line(x,true)).join('') : '') : '');
       })()+
+      '<input class="mail-in u-mail" type="email" autocapitalize="off" spellcheck="false" '+
+        'data-act="u-mail" data-id="'+u.id+'" value="'+esc(u.email||'')+'" placeholder="email" aria-label="אימייל של החשבון">'+
       '<div class="u-act">'+
         (fin ? '' : '<button class="mini'+(dn?' ok':'')+'" data-act="flip" data-id="'+u.id+'">'+
           (dn?'<b>\u2713</b> Done':'To Do')+'</button>')+
@@ -694,7 +697,7 @@ document.addEventListener('click', e => {
   else if (act === 'archive' && u){
     if (!confirm('להעביר את "'+u.name+'" לארכיון?')) return;
     state.archive = state.archive || [];
-    state.archive.push({ id: uid(), name: u.name, email: '', deposited: u.money==null?null:u.money,
+    state.archive.push({ id: uid(), name: u.name, email: u.email || '', deposited: u.money==null?null:u.money,
       profit: (u.balance==null && u.money==null) ? null : ((Number(u.balance)||0)-(Number(u.money)||0)), day: u.day });
     state.users = state.users.filter(x => x.id !== u.id);
     state.folded = state.folded || {}; state.folded.archive = false;
@@ -703,7 +706,8 @@ document.addEventListener('click', e => {
     const a = (state.archive||[]).find(x => x.id === b.dataset.id);
     if (!a) return;
     state.users.push({ id: uid(), name: a.name, day: Math.min(TOTAL, Math.max(1, a.day||1)),
-      doneDay: null, doneDate: null, active: true, money: a.deposited, balance: null, dayDate: gameDay() });
+      doneDay: null, doneDate: null, active: true, money: a.deposited, balance: null,
+      email: a.email || '', dayDate: gameDay() });
     state.archive = state.archive.filter(x => x.id !== a.id);
   }
   else if (act === 'clear-tasks'){
@@ -763,6 +767,10 @@ document.addEventListener('input', e => {
       const row = el.closest('.q-row');
       if (row) row.classList.toggle('unknown', !el.value.trim());
     }
+  }
+  if (el.dataset.act === 'u-mail'){
+    const u = byId(el.dataset.id);
+    if (u){ u.email = el.value; save(); }
   }
   if (el.dataset.act === 'money' || el.dataset.act === 'bal'){
     const u = byId(el.dataset.id);
