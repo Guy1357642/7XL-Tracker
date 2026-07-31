@@ -249,6 +249,11 @@
     font-weight:700;font-size:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.28)}
   .m-total .v{margin-inline-start:auto;font-family:"Rubik",sans-serif;font-variant-numeric:tabular-nums}
 
+  .upbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;gap:10px;
+    justify-content:center;padding:11px 14px calc(11px + env(safe-area-inset-bottom));
+    background:linear-gradient(#F3DC8C,var(--brass));color:#2A2008;font-weight:700;font-size:14px;
+    box-shadow:0 -6px 18px rgba(0,0,0,.45)}
+  .upbar button{background:#2A2008;color:#F3DC8C;border:0;border-radius:99px;padding:7px 14px;font-weight:700}
   footer{margin-top:30px;padding-top:14px;border-top:1px solid rgba(201,162,39,.4);font-size:12.5px;
     color:rgba(247,242,228,.66);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   @media (prefers-reduced-motion:reduce){*{animation:none!important}}
@@ -261,7 +266,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v12';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v13';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 const DAY_START_HOUR = 3;               /* המשימה מתחלפת ב-03:00 */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -793,7 +798,23 @@ setInterval(() => {
 }, 20000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden){ lastDay = gameDay(); render(); } });
 
-load().then(render);
+async function checkUpdate(){
+  try {
+    const r = await fetch('version.json?cb=' + Date.now(), { cache: 'no-store' });
+    const j = await r.json();
+    if (!j || !j.build || j.build === BUILD || document.querySelector('.upbar')) return;
+    const bar = document.createElement('div');
+    bar.className = 'upbar';
+    bar.innerHTML = '<span>גרסה חדשה זמינה: ' + esc(j.build) + '</span><button type="button">רענן</button>';
+    bar.querySelector('button').addEventListener('click', () => {
+      location.replace(location.pathname + '?v=' + encodeURIComponent(j.build) + '&t=' + Date.now());
+    });
+    document.body.appendChild(bar);
+  } catch(e){ /* אין רשת, לא נורא */ }
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
+
+load().then(render).then(checkUpdate);
 </script>
 </body>
 </html>
