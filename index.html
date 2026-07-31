@@ -26,7 +26,7 @@
     --brass:#C9A227; --brass-dk:#8A6B12;
     --ivory:#F7F2E4; --card:#FFFDF6;
     --ink:#1A2620; --soft:#5F6D62; --line:#D9D2BE;
-    --wine:#8E1F2B; --money:#1E6B4A; --money-dk:#12503A;
+    --wine:#8E1F2B; --money:#1E6B4A; --violet:#5B3FB5; --violet-lt:#8A6BE8; --money-dk:#12503A;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
@@ -99,14 +99,17 @@
   .pc.red b,.pc.red i{color:var(--wine)}
   .pc.big{width:44px;height:60px;transform:rotate(-3deg)}
   .pc.big b{font-size:19px}.pc.big i{font-size:14px}
-  .pc.live{border-color:var(--brass);box-shadow:0 0 0 2px rgba(201,162,39,.55), 0 3px 6px rgba(0,0,0,.3)}
+  .pc.live{border-color:var(--violet);box-shadow:0 0 0 2px rgba(138,107,232,.5), 0 3px 6px rgba(0,0,0,.3)}
+  .pc.live.ldone{border-color:var(--brass);box-shadow:0 0 0 2px rgba(201,162,39,.55), 0 3px 6px rgba(0,0,0,.3)}
 
   ol.q{list-style:none;margin:0;padding:0}
   .q-row{display:flex;align-items:center;gap:9px;padding:8px 6px;border-bottom:1px dashed rgba(26,38,32,.16)}
   .q-row:last-child{border-bottom:0}
   .q-row.unknown:not(.live){background:rgba(176,42,42,.08);border-radius:10px;box-shadow:inset 3px 0 0 rgba(176,42,42,.45)}
   .q-row.unknown .q-name::placeholder{color:#A3242F;opacity:.85;font-weight:700}
-  .q-row.live{border-radius:12px;background:linear-gradient(90deg,rgba(201,162,39,.22),rgba(201,162,39,.06));
+  .q-row.live{border-radius:12px;background:linear-gradient(90deg,rgba(138,107,232,.22),rgba(138,107,232,.05));
+    box-shadow:inset 3px 0 0 var(--violet)}
+  .q-row.live.ldone{background:linear-gradient(90deg,rgba(201,162,39,.22),rgba(201,162,39,.06));
     box-shadow:inset 3px 0 0 var(--brass)}
   .q-name{flex:1;min-width:0;border:0;background:transparent;font-family:inherit;font-size:15px;color:var(--ink);
     padding:5px 2px;border-bottom:1px solid transparent}
@@ -128,6 +131,7 @@
   .tok::after{content:"";position:absolute;inset:5px;border-radius:99px;border:1px dashed rgba(255,255,255,.55)}
   .tok.pale{color:#20302A}
   .tok.pale::after{border-color:rgba(0,0,0,.3)}
+  .tok.todo{box-shadow:0 0 0 2px var(--violet-lt), 0 2px 4px rgba(0,0,0,.45)}
   .tok.done{box-shadow:0 0 0 2px var(--brass), 0 2px 4px rgba(0,0,0,.45)}
   .tok[data-act]{cursor:pointer}
   .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--soft);padding:9px 6px 5px;
@@ -145,6 +149,7 @@
   .badge{font-family:"Rubik",sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
     padding:3px 8px;border-radius:4px;border:1px solid;white-space:nowrap;flex:none;line-height:1.5}
   .badge.hard{color:#8A5600;border-color:var(--brass);background:rgba(201,162,39,.2)}
+  .badge.easy{color:#14603F;border-color:#2E8B5F;background:rgba(30,107,74,.14)}
   .badge.no{color:#8E1F2B;border-color:#C05252;background:rgba(142,31,43,.12)}
   .badge.off{color:var(--soft);border-color:var(--line);border-style:dashed;background:transparent}
 
@@ -282,8 +287,10 @@ const DEFAULT_ARCHIVE = [
   { name:'7', email:'Liorlavi7@proton.me', deposited:30, profit:170, day:30 },
   { name:'8', email:'Liorlavi8@proton.me', deposited:20, profit:65,  day:30 }
 ];
-const DEFAULT_FLAGS = {};   /* תגיות Hard / Do Not Do נקבעות ביד */
-const FLAG_TEXT = {hard:'Hard', no:'Do Not Do'};
+/* כל המשימות מתחילות כ-Easy, ומשנים ידנית ל-Hard או Do Not Do */
+const FLAG_VERSION = 1;
+const DEFAULT_FLAGS = (() => { const f = {}; for (let d = 1; d <= 30; d++) f[d] = 'easy'; return f; })();
+const FLAG_TEXT = {hard:'Hard', easy:'Easy', no:'Do Not Do'};
 /* המפתח הוא מספר המשימות שהושלמו, לא מספר היום */
 /* איזה כרטיס טורניר מגיע מאיזה פרס. פרסים במזומן אינם טורניר */
 /* פרס במזומן, למשל C$15 או $150, אינו טורניר */
@@ -368,13 +375,15 @@ function token(u, extra){
   return '<span class="tok'+(pale(c)?' pale':'')+(extra||'')+'" style="background:'+c+'" title="'+esc(u.name)+'">'+esc(u.name)+'</span>';
 }
 function cardMark(d, big, live){
-  return '<span class="pc'+(isRed(d)?' red':'')+(big?' big':'')+(live?' live':'')+'"><b>'+d+'</b><i>'+suitOf(d)+'</i></span>';
+  return '<span class="pc'+(isRed(d)?' red':'')+(big?' big':'')+(live?' live':'')+
+    (live === 'done' ? ' ldone' : '')+'"><b>'+d+'</b><i>'+suitOf(d)+'</i></span>';
 }
 
 /* ============ state + storage ============ */
 const freshState = () => ({
   tasks: DEFAULT_TASKS.slice(),
   flags: Object.assign({}, DEFAULT_FLAGS),
+  flagVer: FLAG_VERSION,
   currency: '$',
   archive: DEFAULT_ARCHIVE.map(a => Object.assign({ id: uid() }, a)),
   tickets: [],
@@ -414,6 +423,12 @@ async function load(){
     }
     if (Array.isArray(p.users)) state.users = p.users;
     state.flags = (p.flags && typeof p.flags === 'object') ? p.flags : Object.assign({}, DEFAULT_FLAGS);
+    /* פעם אחת: כל יום בלי תגית מקבל Easy, בלי לגעת במה שסימנת */
+    state.flagVer = p.flagVer || 0;
+    if (state.flagVer < FLAG_VERSION){
+      for (let d = 1; d <= TOTAL; d++) if (!state.flags[d]) state.flags[d] = 'easy';
+      state.flagVer = FLAG_VERSION;
+    }
     if (p.currency) state.currency = p.currency;
     state.archive = Array.isArray(p.archive) ? p.archive : [];
     state.tickets = Array.isArray(p.tickets) ? p.tickets : [];
@@ -462,19 +477,25 @@ function render(){
   let list = '';
   for (let d=1; d<=TOTAL; d++){
     const here = running.filter(u => u.day === d);
-    const toks = here.map(u => '<span class="tok'+(pale(chipOf(u))?' pale':'')+(doneToday(u)?' done':'')+
+    const allDone = here.length > 0 && here.every(doneToday);
+    const toks = here.map(u => '<span class="tok'+(pale(chipOf(u))?' pale':'')+(doneToday(u)?' done':' todo')+
         '" style="background:'+chipOf(u)+'" data-act="flip" data-id="'+u.id+'" role="button" aria-label="'+esc(u.name)+'">'+esc(u.name)+'</span>').join('');
     const many = here.length > 1;
     const btns = here.map(u => '<button class="mini'+(doneToday(u)?' ok':'')+'" data-act="flip" data-id="'+u.id+'">'+
       (doneToday(u)?'<b>\u2713</b> Done':'To Do')+(many?' '+esc(u.name):'')+'</button>').join('');
     const unknown = !String(state.tasks[d-1]||'').trim();
-    list += '<li class="q-row'+(here.length?' live':'')+(unknown?' unknown':'')+'">'+cardMark(d,false,here.length>0)+btns+
+    list += '<li class="q-row'+(here.length?' live':'')+(allDone?' ldone':'')+(unknown?' unknown':'')+'">'+
+      cardMark(d, false, here.length ? (allDone ? 'done' : 'todo') : false)+btns+
       '<span class="q-mid"><input class="q-name" dir="auto" data-act="task" data-day="'+d+'" value="'+esc(state.tasks[d-1]||'')+'" placeholder="Unknown" aria-label="שם המשימה ליום '+d+'">'+prizeLine(d)+'</span>'+
       badge(d, tagEdit)+'<span class="tokens">'+toks+'</span></li>';
   }
   const listPanel = '<div class="panel"><ol class="q">'+list+'</ol>'+
-    '<div class="legend"><span>ז\'טון = חשבון שנמצא במשימה הזו</span><span>מסגרת זהב = בוצע היום</span>'+
-    '<span class="badge hard">Hard</span><span class="badge no">Do Not Do</span></div></div>';
+    '<div class="legend"><span>ז\'טון = חשבון שנמצא במשימה הזו</span>'+
+    '<span>מסגרת סגולה = משימה לעשות</span>'+
+    '<span>מסגרת זהב = משימה בוצעה</span>'+
+    '<span>מסגרת אדומה = משימה לא ידועה</span>'+
+    '<span class="badge hard">Hard</span><span class="badge easy">Easy</span>'+
+    '<span class="badge no">Do Not Do</span></div></div>';
 
   /* 2 · היום */
   const byDay = {};
@@ -490,7 +511,8 @@ function render(){
         '<button class="mini'+(doneToday(u)?' ok':'')+'" data-act="flip" data-id="'+u.id+'">'+
           (doneToday(u)?'<b>\u2713</b> Done':'To Do')+'</button>'+
         '</div>').join('');
-      todayHtml += '<div class="card"><div class="head-row">'+cardMark(d,true,true)+
+      const dDone = byDay[d].every(doneToday);
+      todayHtml += '<div class="card"><div class="head-row">'+cardMark(d,true,dDone?'done':'todo')+
         '<span class="q-mid"><span class="t" dir="auto">'+esc(taskName(d))+'</span>'+prizeLine(d)+'</span>'+badge(d,false)+'</div>'+rows+'</div>';
     });
   }
@@ -517,7 +539,7 @@ function render(){
     return '<div class="card'+(u.active===false?' paused':'')+'">'+
       '<div class="u-head">'+token(u,dn?' done':'')+
         '<input class="u-name" data-act="rename" data-id="'+u.id+'" value="'+esc(u.name)+'" aria-label="שם החשבון">'+
-        (fin ? '<span class="fin">סיים 30 ימים</span>' : cardMark(u.day,false,true))+'</div>'+
+        (fin ? '<span class="fin">סיים 30 ימים</span>' : cardMark(u.day,false,dn?'done':'todo'))+'</div>'+
       '<p class="u-task" dir="auto">'+(fin ? 'כל 30 המשימות הושלמו.' : esc(taskName(u.day))+' '+badge(u.day,false))+'</p>'+
       (() => {
         const all = earnedPrizes(u), mark = u.used || [];
@@ -671,7 +693,7 @@ document.addEventListener('click', e => {
   else if (act === 'clear-tasks'){
     if (!confirm('לנקות את כל שמות המשימות ואת כל התגיות?')) return;
     state.tasks = Array(TOTAL).fill('');
-    state.flags = {};
+    state.flags = Object.assign({}, DEFAULT_FLAGS);
   }
   else if (act === 'fold'){
     const sec = b.dataset.sec;
@@ -687,7 +709,8 @@ document.addEventListener('click', e => {
   else if (act === 'flag'){
     const d = b.dataset.day, cur = flagOf(d);
     if (!state.flags) state.flags = {};
-    if (cur === 'hard') state.flags[d] = 'no';
+    if (cur === 'hard') state.flags[d] = 'easy';
+    else if (cur === 'easy') state.flags[d] = 'no';
     else if (cur === 'no') delete state.flags[d];
     else state.flags[d] = 'hard';
   }
