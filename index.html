@@ -104,12 +104,8 @@
 
   ol.q{list-style:none;margin:0;padding:0}
   .q-row{position:relative;display:flex;align-items:center;gap:9px;padding:8px 6px;border-bottom:1px dashed rgba(26,38,32,.16)}
-  .q-row .badge{position:absolute;top:2px;left:4px;z-index:2;font-size:7.5px;padding:1px 5px;
-    letter-spacing:.05em;transform:rotate(-24deg);transform-origin:left top;
-    box-shadow:0 1px 2px rgba(0,0,0,.18)}
-  .q-row.tagged .q-mid{padding-top:8px}
-  .q-row.tagedit .badge{position:static;transform:none;font-size:9.5px;padding:3px 8px;box-shadow:none}
-  .q-row.tagedit .q-mid{padding-top:0}
+  .q-mid .badge{align-self:flex-end;font-size:8px;padding:1px 5px;letter-spacing:.04em;line-height:1.6;margin:0 0 1px}
+  .q-row.tagedit .q-mid .badge{font-size:9.5px;padding:3px 8px}
   .q-row:last-child{border-bottom:0}
   .q-row.unknown:not(.live){background:rgba(176,42,42,.08);border-radius:10px;box-shadow:inset 3px 0 0 rgba(176,42,42,.45)}
   .q-row.unknown .q-name::placeholder{color:#A3242F;opacity:.85;font-weight:700}
@@ -272,7 +268,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v14';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v15';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 const DAY_START_HOUR = 3;               /* המשימה מתחלפת ב-03:00 */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -495,8 +491,10 @@ function render(){
     list += '<li class="q-row'+(here.length?' live':'')+(allDone?' ldone':'')+(unknown?' unknown':'')+
       (flagOf(d)?' tagged':'')+(tagEdit?' tagedit':'')+'">'+
       cardMark(d, false, here.length ? (allDone ? 'done' : 'todo') : false)+btns+
-      '<span class="q-mid"><input class="q-name" dir="auto" data-act="task" data-day="'+d+'" value="'+esc(state.tasks[d-1]||'')+'" placeholder="Unknown" aria-label="שם המשימה ליום '+d+'">'+prizeLine(d)+'</span>'+
-      badge(d, tagEdit)+'<span class="tokens">'+toks+'</span></li>';
+      '<span class="q-mid">'+badge(d, tagEdit)+
+      '<input class="q-name" dir="auto" data-act="task" data-day="'+d+'" value="'+esc(state.tasks[d-1]||'')+'" placeholder="Unknown" aria-label="שם המשימה ליום '+d+'">'+
+      prizeLine(d)+'</span>'+
+      '<span class="tokens">'+toks+'</span></li>';
   }
   const listPanel = '<div class="panel"><ol class="q">'+list+'</ol>'+
     '<div class="legend"><span>ז\'טון = חשבון שנמצא במשימה הזו</span>'+
