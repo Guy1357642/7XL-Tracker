@@ -187,6 +187,9 @@
     flex:1;min-width:0;padding:2px}
   .u-name:focus{border-bottom:1px solid var(--money);outline:none}
   .u-task{font-size:14.5px;font-weight:700;color:var(--ink);margin:0 0 10px}
+  .done30{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:0 0 10px;padding:9px 11px;
+    border-radius:10px;background:rgba(201,162,39,.16);border:1px solid var(--brass);
+    font-weight:700;font-size:13.5px;color:#6B5310}
   .u-act{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
   .spacer{flex:1}
   .paused{opacity:.55}
@@ -235,6 +238,7 @@
   .fin-in{width:74px;text-align:left;direction:ltr;font-family:"Rubik",sans-serif;font-weight:700;font-size:14px;
     border:1px solid var(--line);border-radius:8px;padding:6px 7px;background:#fff;color:var(--ink);
     font-variant-numeric:tabular-nums}
+  .u-note{margin:0 0 9px;font-family:inherit;font-size:13.5px}
   .u-mail-row{display:flex;align-items:center;gap:7px;margin:0 0 9px}
   .u-mail-row .mail-in{flex:1}
   .u-head .u-name{flex:0 0 74px}
@@ -275,9 +279,9 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v20';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v21';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
-const DAY_START_HOUR = 3;               /* המשימה מתחלפת ב-03:00 */
+/* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
 const CHIPS = ['#B3202C','#1B4F8A','#1E6B4A','#26262A','#EFE9DC','#5E3A86','#C2701C','#0F7F86'];
 
@@ -330,14 +334,18 @@ const uid = () => Math.random().toString(36).slice(2,9);
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 /* היום הנוכחי במשחק: כל מה שקורה לפני 03:00 נחשב ליום הקודם */
-const gameDay = () => fmt(new Date(Date.now() - DAY_START_HOUR*3600*1000));
-const gameDayDate = () => new Date(Date.now() - DAY_START_HOUR*3600*1000);
+const p2 = n => String(n).padStart(2,'0');
+const gameDay = () => { const d = new Date();
+  return d.getUTCFullYear()+'-'+p2(d.getUTCMonth()+1)+'-'+p2(d.getUTCDate()); };
+const gameDayDate = () => { const n = gameDay().split('-').map(Number);
+  return new Date(n[0], n[1]-1, n[2]); };
 function msToSwitch(){
-  const now = new Date(), nxt = new Date(now);
-  nxt.setHours(DAY_START_HOUR,0,0,0);
-  if (now >= nxt) nxt.setDate(nxt.getDate()+1);
-  return nxt - now;
+  const n = new Date();
+  return Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()+1, 0, 0, 0) - n.getTime();
 }
+/* השעה המקומית שבה זה קורה, משתנה לבד בין שעון קיץ לחורף */
+const switchClock = () => new Date(Date.now() + msToSwitch())
+  .toLocaleTimeString('he-IL', { hour:'2-digit', minute:'2-digit' });
 const suitOf = d => SUITS[(d-1)%4];
 const isRed = d => (d-1)%4===1 || (d-1)%4===2;
 const taskName = d => (state.tasks[d-1]||'').trim() || ('Mission ' + d);
@@ -565,7 +573,10 @@ function render(){
           ? '<span class="u-mailtag" dir="ltr" data-act="u-mail-edit" data-id="'+u.id+'" title="לחיצה לעריכה">'+esc(u.email)+'</span>'
           : '')+
         (fin ? '<span class="fin">סיים 30 ימים</span>' : cardMark(u.day,false,dn?'done':'todo'))+'</div>'+
-      '<p class="u-task" dir="auto">'+(fin ? 'כל 30 המשימות הושלמו.' : esc(taskName(u.day))+' '+badge(u.day,false))+'</p>'+
+      (fin
+        ? '<div class="done30"><span>\u2714 החשבון סיים את כל 30 המשימות</span>'+
+          '<button class="b-gold" data-act="archive" data-id="'+u.id+'">העבר לארכיון</button></div>'
+        : '<p class="u-task" dir="auto">'+esc(taskName(u.day))+' '+badge(u.day,false)+'</p>')+
       (() => {
         const all = earnedPrizes(u), mark = u.used || [];
         const line = (pz, used) => '<div class="pz'+(used?' used':'')+'">'+
@@ -585,6 +596,8 @@ function render(){
             'data-act="u-mail" data-id="'+u.id+'" value="'+esc(u.email||'')+'" placeholder="email" aria-label="אימייל של החשבון">'+
           '<button class="mini sm" data-act="u-mail-done" data-id="'+u.id+'">הוסף אימייל</button></div>'
         : '')+
+      '<input class="mail-in u-note" data-act="u-note" data-id="'+u.id+'" value="'+esc(u.notes||'')+'" '+
+        'placeholder="הערות" aria-label="הערות לחשבון">'+
       '<div class="u-act">'+
         (fin ? '' : '<button class="mini'+(dn?' ok':'')+'" data-act="flip" data-id="'+u.id+'">'+
           (dn?'<b>\u2713</b> Done':'To Do')+'</button>')+
@@ -628,10 +641,10 @@ function render(){
     '<tr><td><span class="nm">'+esc(a.name)+'</span></td>'+
     '<td><input class="mail-in" type="email" autocapitalize="off" spellcheck="false" data-act="a-mail" data-id="'+a.id+'" value="'+esc(a.email||'')+'" placeholder="email" aria-label="Email"></td>'+
     '<td><input class="fin-in" type="number" inputmode="decimal" step="any" data-act="a-dep" data-id="'+a.id+'" value="'+num(a.deposited)+'" placeholder="0" aria-label="Deposited"></td>'+
-    '<td><input class="fin-in" type="number" inputmode="decimal" step="any" data-act="a-prof" data-id="'+a.id+'" value="'+num(a.profit)+'" placeholder="0" aria-label="Profit"></td>'+
+    '<td><input class="fin-in" type="number" inputmode="decimal" step="any" data-act="a-prof" data-id="'+a.id+'" value="'+num(a.profit)+'" placeholder="0" aria-label="Ended with"></td>'+
     '<td><button class="ghost" data-act="a-back" data-id="'+a.id+'">החזר</button></td></tr>').join('');
   const archHtml = (state.archive||[]).length
-    ? '<div class="panel pad"><table class="ftab"><thead><tr><th>Account</th><th>Email</th><th>Deposited</th><th>Profit</th><th></th></tr></thead>'+
+    ? '<div class="panel pad"><table class="ftab"><thead><tr><th>Account</th><th>Email</th><th>Deposited</th><th>Ended with</th><th></th></tr></thead>'+
       '<tbody>'+aRows+'</tbody></table></div>'
     : '<div class="empty">הארכיון ריק. חשבון שסיים עובר לכאן מכרטיס החשבון.</div>';
 
@@ -713,7 +726,7 @@ document.addEventListener('click', e => {
     if (!confirm('להעביר את "'+u.name+'" לארכיון?')) return;
     state.archive = state.archive || [];
     state.archive.push({ id: uid(), name: u.name, email: u.email || '', deposited: u.money==null?null:u.money,
-      profit: (u.balance==null && u.money==null) ? null : ((Number(u.balance)||0)-(Number(u.money)||0)), day: u.day });
+      profit: (u.balance==null ? null : u.balance), notes: u.notes || '', day: u.day });
     state.users = state.users.filter(x => x.id !== u.id);
     state.folded = state.folded || {}; state.folded.archive = false;
   }
@@ -722,7 +735,7 @@ document.addEventListener('click', e => {
     if (!a) return;
     state.users.push({ id: uid(), name: a.name, day: Math.min(TOTAL, Math.max(1, a.day||1)),
       doneDay: null, doneDate: null, active: true, money: a.deposited, balance: null,
-      email: a.email || '', dayDate: gameDay() });
+      email: a.email || '', notes: a.notes || '', dayDate: gameDay() });
     state.archive = state.archive.filter(x => x.id !== a.id);
   }
   else if (act === 'clear-tasks'){
@@ -779,6 +792,10 @@ document.addEventListener('input', e => {
       if (row) row.classList.toggle('unknown', !el.value.trim());
     }
   }
+  if (el.dataset.act === 'u-note'){
+    const u = byId(el.dataset.id);
+    if (u){ u.notes = el.value; save(); }
+  }
   if (el.dataset.act === 'u-mail'){
     const u = byId(el.dataset.id);
     if (u){ u.email = el.value; save(); }
@@ -827,7 +844,7 @@ document.addEventListener('keydown', e => {
 setInterval(() => {
   if (gameDay() !== lastDay){ lastDay = gameDay(); render(); return; }
   const cd = document.getElementById('cd');
-  if (cd){ const ms = msToSwitch(); cd.textContent = 'המשימות מתחלפות ב-03:00 \u00B7 בעוד '+Math.floor(ms/3600000)+'ש '+Math.floor(ms%3600000/60000)+'ד'; }
+  if (cd){ const ms = msToSwitch(); cd.textContent = 'המשימות מתחלפות ב-'+switchClock()+' \u00B7 בעוד '+Math.floor(ms/3600000)+'ש '+Math.floor(ms%3600000/60000)+'ד'; }
 }, 20000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden){ lastDay = gameDay(); render(); } });
 
