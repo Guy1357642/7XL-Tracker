@@ -283,7 +283,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v25';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v26';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -304,6 +304,9 @@ const KNOWN_TASKS = {
 };
 const DEFAULT_TASKS = Array.from({length:30}, (_, i) => KNOWN_TASKS[i+1] || '');
 const TASK_VERSION = 1;   /* מעלים כדי לדרוס את שמות המשימות במכשירים */
+/* ימים שצריך לנקות פעם אחת אצל כולם, למשל אחרי טעות */
+const TASK_FIX_VERSION = 1;
+const CLEAR_DAYS = [14];
 /* המצב הנוכחי שלך, כברירת מחדל למכשיר חדש או אחרי איפוס */
 /* מכשיר חדש מתחיל ריק, וכל אחד מוסיף את החשבונות שלו.
    הנתונים נשמרים במכשיר, ולכן עדכון של הקובץ לא נוגע בהם */
@@ -421,6 +424,7 @@ const freshState = () => ({
   flags: Object.assign({}, DEFAULT_FLAGS),
   flagVer: FLAG_VERSION,
   taskVer: TASK_VERSION,
+  taskFix: TASK_FIX_VERSION,
   currency: '$',
   archive: DEFAULT_ARCHIVE.map(a => Object.assign({ id: uid() }, a)),
   tickets: [],
@@ -463,6 +467,12 @@ async function load(){
       for (let i = 0; i < TOTAL; i++){
         if (!String(state.tasks[i]||'').trim() && KNOWN_TASKS[i+1]) state.tasks[i] = KNOWN_TASKS[i+1];
       }
+    }
+    /* ניקוי חד פעמי של ימים שנרשמו בטעות */
+    state.taskFix = p.taskFix || 0;
+    if (state.taskFix < TASK_FIX_VERSION){
+      CLEAR_DAYS.forEach(d => { if (!KNOWN_TASKS[d]) state.tasks[d-1] = ''; });
+      state.taskFix = TASK_FIX_VERSION;
     }
     if (Array.isArray(p.users)) state.users = p.users;
     state.flags = (p.flags && typeof p.flags === 'object') ? p.flags : Object.assign({}, DEFAULT_FLAGS);
