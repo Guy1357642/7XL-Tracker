@@ -283,7 +283,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v23';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v24';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -293,11 +293,14 @@ const CHIPS = ['#B3202C','#1B4F8A','#1E6B4A','#26262A','#EFE9DC','#5E3A86','#C27
 const KNOWN_TASKS = {
   1:'50 R&C Hands',
   3:'50 R&C Hands',
+  4:'80 R&C Hands',
   6:'S&G X3',
   7:'50 Hands AoF',
   11:'125 R&C Hands',
   12:'150 R&C Hands',
-  27:'450 R&C Hands'
+  14:'Play a Tournament - Daily Guarantee',
+  27:'450 R&C Hands',
+  28:'Quad in PLO'
 };
 const DEFAULT_TASKS = Array.from({length:30}, (_, i) => KNOWN_TASKS[i+1] || '');
 const TASK_VERSION = 1;   /* מעלים כדי לדרוס את שמות המשימות במכשירים */
