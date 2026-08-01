@@ -283,7 +283,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v26';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v27';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -313,8 +313,14 @@ const CLEAR_DAYS = [14];
 const DEFAULT_ACCOUNTS = [];
 const DEFAULT_ARCHIVE = [];
 /* כל המשימות מתחילות כ-Easy, ומשנים ידנית ל-Hard או Do Not Do */
-const FLAG_VERSION = 3;
-const DEFAULT_FLAGS = (() => { const f = {}; for (let d = 1; d <= 30; d++) f[d] = 'easy'; return f; })();
+const FLAG_VERSION = 4;
+const HARD_DAYS = [28];
+const DEFAULT_FLAGS = (() => {
+  const f = {};
+  for (let d = 1; d <= 30; d++) f[d] = 'easy';
+  HARD_DAYS.forEach(d => f[d] = 'hard');
+  return f;
+})();
 const FLAG_TEXT = {hard:'Hard', easy:'Easy', no:'Do Not Do'};
 /* המפתח הוא מספר המשימות שהושלמו, לא מספר היום */
 /* איזה כרטיס טורניר מגיע מאיזה פרס. פרסים במזומן אינם טורניר */
