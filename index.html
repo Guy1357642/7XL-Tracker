@@ -283,7 +283,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v32';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v33';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -321,12 +321,14 @@ const CLEAR_DAYS = [3];
 const DEFAULT_ACCOUNTS = [];
 const DEFAULT_ARCHIVE = [];
 /* כל המשימות מתחילות כ-Easy, ומשנים ידנית ל-Hard או Do Not Do */
-const FLAG_VERSION = 4;
+const FLAG_VERSION = 5;
 const HARD_DAYS = [28];
+const NO_DAYS   = [30];
 const DEFAULT_FLAGS = (() => {
   const f = {};
   for (let d = 1; d <= 30; d++) f[d] = 'easy';
   HARD_DAYS.forEach(d => f[d] = 'hard');
+  NO_DAYS.forEach(d => f[d] = 'no');
   return f;
 })();
 const FLAG_TEXT = {hard:'Hard', easy:'Easy', no:'Do Not Do'};
