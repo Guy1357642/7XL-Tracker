@@ -283,7 +283,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v31';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v32';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -293,7 +293,7 @@ const CHIPS = ['#B3202C','#1B4F8A','#1E6B4A','#26262A','#EFE9DC','#5E3A86','#C27
 const KNOWN_TASKS = {
   1:'50 R&C Hands',
   2:'60 R&C Hands',
-  3:'50 R&C Hands',
+  3:'70 R&C Hands',
   4:'80 R&C Hands',
   5:'90 R&C Hands',
   6:'S&G X3',
@@ -313,8 +313,8 @@ const KNOWN_TASKS = {
 const DEFAULT_TASKS = Array.from({length:30}, (_, i) => KNOWN_TASKS[i+1] || '');
 const TASK_VERSION = 1;   /* מעלים כדי לדרוס את שמות המשימות במכשירים */
 /* ימים שצריך לנקות פעם אחת אצל כולם, למשל אחרי טעות */
-const TASK_FIX_VERSION = 1;
-const CLEAR_DAYS = [];
+const TASK_FIX_VERSION = 2;
+const CLEAR_DAYS = [3];
 /* המצב הנוכחי שלך, כברירת מחדל למכשיר חדש או אחרי איפוס */
 /* מכשיר חדש מתחיל ריק, וכל אחד מוסיף את החשבונות שלו.
    הנתונים נשמרים במכשיר, ולכן עדכון של הקובץ לא נוגע בהם */
@@ -485,7 +485,7 @@ async function load(){
     /* ניקוי חד פעמי של ימים שנרשמו בטעות */
     state.taskFix = p.taskFix || 0;
     if (state.taskFix < TASK_FIX_VERSION){
-      CLEAR_DAYS.forEach(d => { if (!KNOWN_TASKS[d]) state.tasks[d-1] = ''; });
+      CLEAR_DAYS.forEach(d => { state.tasks[d-1] = KNOWN_TASKS[d] || ''; });
       state.taskFix = TASK_FIX_VERSION;
     }
     if (Array.isArray(p.users)) state.users = p.users;
