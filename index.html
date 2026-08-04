@@ -283,7 +283,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v34';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v35';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -302,9 +302,10 @@ const KNOWN_TASKS = {
   9:'90 R&C Hands',
   11:'125 R&C Hands',
   12:'150 R&C Hands',
-  13:'200 R&C Hands',
+  13:'Play a Tournament - Daily Guarantee',
   14:'Play 30 S&G',
   15:'150 R&C Hands',
+  16:'200 R&C Hands',
   27:'450 R&C Hands',
   28:'Quad in PLO',
   29:'500 R&C Hands',
@@ -313,8 +314,8 @@ const KNOWN_TASKS = {
 const DEFAULT_TASKS = Array.from({length:30}, (_, i) => KNOWN_TASKS[i+1] || '');
 const TASK_VERSION = 1;   /* מעלים כדי לדרוס את שמות המשימות במכשירים */
 /* ימים שצריך לנקות פעם אחת אצל כולם, למשל אחרי טעות */
-const TASK_FIX_VERSION = 3;
-const CLEAR_DAYS = [13];
+const TASK_FIX_VERSION = 4;
+const CLEAR_DAYS = [13,16];
 /* המצב הנוכחי שלך, כברירת מחדל למכשיר חדש או אחרי איפוס */
 /* מכשיר חדש מתחיל ריק, וכל אחד מוסיף את החשבונות שלו.
    הנתונים נשמרים במכשיר, ולכן עדכון של הקובץ לא נוגע בהם */
