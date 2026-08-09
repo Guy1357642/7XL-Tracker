@@ -283,7 +283,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v41';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v42';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -311,6 +311,7 @@ const KNOWN_TASKS = {
   18:'300 R&C Hands',
   19:'350 R&C Hands',
   20:'Play a Bounty Tournament',
+  21:'S&G X10',
   27:'450 R&C Hands',
   28:'Quad in PLO',
   29:'500 R&C Hands',
@@ -327,8 +328,8 @@ const CLEAR_DAYS = [7];
 const DEFAULT_ACCOUNTS = [];
 const DEFAULT_ARCHIVE = [];
 /* כל המשימות מתחילות כ-Easy, ומשנים ידנית ל-Hard או Do Not Do */
-const FLAG_VERSION = 5;
-const HARD_DAYS = [28];
+const FLAG_VERSION = 6;
+const HARD_DAYS = [21,28];
 const NO_DAYS   = [30];
 const DEFAULT_FLAGS = (() => {
   const f = {};
