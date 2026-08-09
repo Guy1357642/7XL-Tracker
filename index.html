@@ -283,7 +283,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v42';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v43';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -291,37 +291,37 @@ const CHIPS = ['#B3202C','#1B4F8A','#1E6B4A','#26262A','#EFE9DC','#5E3A86','#C27
 
 /* המשימות החדשות של המשחק, לפי מספר היום. מוסיפים לכאן בכל פעם שמתגלה עוד אחת */
 const KNOWN_TASKS = {
-  1:'50 R&C Hands',
-  2:'60 R&C Hands',
-  3:'70 R&C Hands',
-  4:'80 R&C Hands',
-  5:'90 R&C Hands',
-  6:'S&G X3',
+  1:'50 Rush & Cash',
+  2:'60 Rush & Cash',
+  3:'70 Rush & Cash',
+  4:'80 Rush & Cash',
+  5:'90 Rush & Cash',
+  6:'Spin & Gold X3',
   7:'50 AoF Hands',
-  8:'80 R&C Hands',
-  9:'90 R&C Hands',
-  10:'100 R&C Hands',
-  11:'125 R&C Hands',
-  12:'150 R&C Hands',
+  8:'80 Rush & Cash',
+  9:'90 Rush & Cash',
+  10:'100 Rush & Cash',
+  11:'125 Rush & Cash',
+  12:'150 Rush & Cash',
   13:'Play a Tournament - Daily Guarantee',
-  14:'Play 30 S&G',
-  15:'150 R&C Hands',
-  16:'200 R&C Hands',
-  17:'250 R&C Hands',
-  18:'300 R&C Hands',
-  19:'350 R&C Hands',
+  14:'Play 30 Spin & Gold',
+  15:'150 Rush & Cash',
+  16:'200 Rush & Cash',
+  17:'250 Rush & Cash',
+  18:'300 Rush & Cash',
+  19:'350 Rush & Cash',
   20:'Play a Bounty Tournament',
-  21:'S&G X10',
-  27:'450 R&C Hands',
+  21:'Spin & Gold X10',
+  27:'450 Rush & Cash',
   28:'Quad in PLO',
-  29:'500 R&C Hands',
+  29:'500 Rush & Cash',
   30:'Jackpot AoF'
 };
 const DEFAULT_TASKS = Array.from({length:30}, (_, i) => KNOWN_TASKS[i+1] || '');
 const TASK_VERSION = 1;   /* מעלים כדי לדרוס את שמות המשימות במכשירים */
 /* ימים שצריך לנקות פעם אחת אצל כולם, למשל אחרי טעות */
-const TASK_FIX_VERSION = 5;
-const CLEAR_DAYS = [7];
+const TASK_FIX_VERSION = 6;
+const CLEAR_DAYS = [1,2,3,4,5,6,8,9,10,11,12,14,15,16,17,18,19,21,27,29];
 /* המצב הנוכחי שלך, כברירת מחדל למכשיר חדש או אחרי איפוס */
 /* מכשיר חדש מתחיל ריק, וכל אחד מוסיף את החשבונות שלו.
    הנתונים נשמרים במכשיר, ולכן עדכון של הקובץ לא נוגע בהם */
