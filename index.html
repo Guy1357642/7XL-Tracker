@@ -283,7 +283,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v48';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v49';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -601,7 +601,7 @@ function render(){
   /* 3 · מחר */
   let tomorrow = '';
   if (running.length){
-    const rows = running.map(u => {
+    const rows = running.slice().sort((a,b) => a.day - b.day).map(u => {
       const nd = u.day + 1;
       const over = nd > TOTAL;
       return '<tr><td>'+token(u)+'</td>'+
