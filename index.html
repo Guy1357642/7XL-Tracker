@@ -117,11 +117,9 @@
   .q-name{flex:1;min-width:0;border:0;background:transparent;font-family:inherit;font-size:15px;font-weight:700;
     color:var(--ink);padding:5px 2px;border-bottom:1px solid transparent}
   .q-name:focus{border-bottom-color:var(--money);outline:none}
-  .q-mid{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
-  .q-mid.q-strike::before,.q-mid.q-strike::after{content:'';position:absolute;left:3px;right:10px;
-    top:50%;height:2px;margin-top:-1px;background:rgba(46,26,20,.6);pointer-events:none;border-radius:1px}
-  .q-mid.q-strike::before{transform:rotate(-10deg)}
-  .q-mid.q-strike::after{transform:rotate(10deg)}
+  .q-mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+  .q-mid.q-strike .q-name{opacity:.45;text-decoration:line-through;text-decoration-color:#8E1F2B;
+    text-decoration-thickness:2px}
   .q-mid .q-name{width:100%}
   .prize{font-family:"Rubik",sans-serif;font-size:10px;font-weight:700;letter-spacing:.02em;color:#8A6B12;
     padding-inline-start:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -287,7 +285,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v60';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v61';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
