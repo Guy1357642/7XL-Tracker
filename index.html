@@ -244,6 +244,7 @@
   .prog{display:flex;align-items:center;gap:8px;margin:0 0 9px;font-size:13px;color:var(--soft)}
   .prog-in{width:48px}
   .prog-den{font-weight:600}
+  .prog-mini{font-size:11px;color:var(--soft);font-family:"Rubik",sans-serif;font-weight:600}
   .u-line{display:flex;align-items:center;gap:8px;margin:0 0 10px}
   .u-line .u-task{margin:0;flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .u-line .badge{flex:none}
@@ -288,7 +289,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v62';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v63';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -508,6 +509,8 @@ async function load(){
       state.taskFix = TASK_FIX_VERSION;
     }
     if (Array.isArray(p.users)) state.users = p.users;
+    /* חשבון שעדיין אין לו מונה השלמות, מקבל אותו מלא לפי היום הנוכחי שלו */
+    state.users.forEach(u => { if (typeof u.completed !== 'number') u.completed = u.day || 0; });
     state.flags = (p.flags && typeof p.flags === 'object') ? p.flags : Object.assign({}, DEFAULT_FLAGS);
     /* פעם אחת: כל יום בלי תגית מקבל Easy, בלי לגעת במה שסימנת */
     state.flagVer = p.flagVer || 0;
@@ -570,12 +573,15 @@ function render(){
     const btns = here.map(u => '<button class="mini'+(doneToday(u)?' ok':'')+'" data-act="flip" data-id="'+u.id+'">'+
       (doneToday(u)?'<b>\u2713</b> Done':'To Do')+(many?' '+esc(u.name):'')+'</button>').join('');
     const unknown = !String(state.tasks[d-1]||'').trim();
+    const progLine = here.length
+      ? '<span class="prog-mini">'+here.map(u => esc(u.name)+': '+Math.min(d, u.completed||0)+'/'+d).join(' \u00B7 ')+'</span>'
+      : '';
     list += '<li class="q-row'+(here.length?' live':'')+(allDone?' ldone':'')+(unknown?' unknown':'')+
       (flagOf(d)?' tagged':'')+(tagEdit?' tagedit':'')+'">'+
       cardMark(d, false, here.length ? (allDone ? 'done' : 'todo') : false)+btns+
       '<span class="q-mid'+(flagOf(d) === 'no' ? ' q-strike' : '')+'">'+badge(d, tagEdit)+
       '<input class="q-name" dir="auto" data-act="task" data-day="'+d+'" value="'+esc(state.tasks[d-1]||'')+'" placeholder="Unknown" aria-label="שם המשימה ליום '+d+'">'+
-      prizeLine(d)+'</span>'+
+      prizeLine(d)+progLine+'</span>'+
       '<span class="tokens">'+toks+'</span></li>';
   }
   const listPanel = '<div class="panel"><ol class="q">'+list+'</ol>'+
