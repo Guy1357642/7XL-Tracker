@@ -244,7 +244,8 @@
   .prog{display:flex;align-items:center;gap:8px;margin:0 0 9px;font-size:13px;color:var(--soft)}
   .prog-in{width:48px}
   .prog-den{font-weight:600}
-  .prog-mini{font-size:11px;color:var(--soft);font-family:"Rubik",sans-serif;font-weight:600}
+  .prog-mini{align-self:flex-end;font-size:11px;color:var(--soft);font-family:"Rubik",sans-serif;
+    font-weight:600;line-height:1.4;margin:0 0 1px}
   .u-line{display:flex;align-items:center;gap:8px;margin:0 0 10px}
   .u-line .u-task{margin:0;flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .u-line .badge{flex:none}
@@ -289,7 +290,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v66';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v67';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
