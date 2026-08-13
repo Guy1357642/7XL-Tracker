@@ -117,7 +117,9 @@
   .q-name{flex:1;min-width:0;border:0;background:transparent;font-family:inherit;font-size:15px;font-weight:700;
     color:var(--ink);padding:5px 2px;border-bottom:1px solid transparent}
   .q-name:focus{border-bottom-color:var(--money);outline:none}
-  .q-mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+  .q-mid{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+  .q-mid.q-strike::after{content:'';position:absolute;left:2px;right:8px;top:52%;height:1px;
+    background:rgba(46,26,20,.55);transform:rotate(-7deg);pointer-events:none}
   .q-mid .q-name{width:100%}
   .prize{font-family:"Rubik",sans-serif;font-size:10px;font-weight:700;letter-spacing:.02em;color:#8A6B12;
     padding-inline-start:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -283,7 +285,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v58';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v59';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -568,7 +570,7 @@ function render(){
     list += '<li class="q-row'+(here.length?' live':'')+(allDone?' ldone':'')+(unknown?' unknown':'')+
       (flagOf(d)?' tagged':'')+(tagEdit?' tagedit':'')+'">'+
       cardMark(d, false, here.length ? (allDone ? 'done' : 'todo') : false)+btns+
-      '<span class="q-mid">'+badge(d, tagEdit)+
+      '<span class="q-mid'+(flagOf(d) === 'no' ? ' q-strike' : '')+'">'+badge(d, tagEdit)+
       '<input class="q-name" dir="auto" data-act="task" data-day="'+d+'" value="'+esc(state.tasks[d-1]||'')+'" placeholder="Unknown" aria-label="שם המשימה ליום '+d+'">'+
       prizeLine(d)+'</span>'+
       '<span class="tokens">'+toks+'</span></li>';
