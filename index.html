@@ -289,7 +289,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v63';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v64';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -318,7 +318,7 @@ const KNOWN_TASKS = {
   19:'350 Rush & Cash',
   20:'Play Bounty Tournament',
   21:'Spin & Gold X10',
-  22:'AA - AoF',
+  22:'Get AA in AoF',
   23:'400 Rush & Cash',
   24:'Play 50 Spin & Gold',
   25:'Holdem - Full House',
@@ -331,8 +331,8 @@ const KNOWN_TASKS = {
 const DEFAULT_TASKS = Array.from({length:30}, (_, i) => KNOWN_TASKS[i+1] || '');
 const TASK_VERSION = 1;   /* מעלים כדי לדרוס את שמות המשימות במכשירים */
 /* ימים שצריך לנקות פעם אחת אצל כולם, למשל אחרי טעות */
-const TASK_FIX_VERSION = 10;
-const CLEAR_DAYS = [26];
+const TASK_FIX_VERSION = 11;
+const CLEAR_DAYS = [22];
 /* המצב הנוכחי שלך, כברירת מחדל למכשיר חדש או אחרי איפוס */
 /* מכשיר חדש מתחיל ריק, וכל אחד מוסיף את החשבונות שלו.
    הנתונים נשמרים במכשיר, ולכן עדכון של הקובץ לא נוגע בהם */
@@ -579,9 +579,9 @@ function render(){
     list += '<li class="q-row'+(here.length?' live':'')+(allDone?' ldone':'')+(unknown?' unknown':'')+
       (flagOf(d)?' tagged':'')+(tagEdit?' tagedit':'')+'">'+
       cardMark(d, false, here.length ? (allDone ? 'done' : 'todo') : false)+btns+
-      '<span class="q-mid'+(flagOf(d) === 'no' ? ' q-strike' : '')+'">'+badge(d, tagEdit)+
+      '<span class="q-mid'+(flagOf(d) === 'no' ? ' q-strike' : '')+'">'+progLine+badge(d, tagEdit)+
       '<input class="q-name" dir="auto" data-act="task" data-day="'+d+'" value="'+esc(state.tasks[d-1]||'')+'" placeholder="Unknown" aria-label="שם המשימה ליום '+d+'">'+
-      prizeLine(d)+progLine+'</span>'+
+      prizeLine(d)+'</span>'+
       '<span class="tokens">'+toks+'</span></li>';
   }
   const listPanel = '<div class="panel"><ol class="q">'+list+'</ol>'+
