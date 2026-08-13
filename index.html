@@ -121,7 +121,6 @@
   .q-mid .q-name{width:100%}
   .prize{font-family:"Rubik",sans-serif;font-size:10px;font-weight:700;letter-spacing:.02em;color:#8A6B12;
     padding-inline-start:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .gi{width:22px;height:22px;object-fit:contain;flex:none;display:block}
   .tokens{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;flex:none;max-width:42%}
 
   /* real poker chips */
@@ -284,7 +283,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v55';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v56';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -409,22 +408,6 @@ function buildPrizeMap(){
 }
 const dayOfN = n => { for (const d in pmap) if (pmap[d].n === Number(n)) return Number(d); return 0; };
 const prizeOf = d => (pmap[d] ? pmap[d].text : '');
-/* סמל סוג המשחק לפי שם המשימה, מהתמונות בתיקיית gg-icons */
-const GAME_ICONS = [
-  [/all.?in or fold|\baof\b|jackpot/i,   'All-in-or-Fold.png',  'AoF'],
-  [/rush ?(&|and) ?cash|\br&c\b/i,       'Rush-and-Cash.png',   'Rush & Cash'],
-  [/spin ?(&|and) ?gold|\bs&g\b/i,       'Spin-and-Gold.png',   'Spin & Gold'],
-  [/\bplo\b|omaha|quad/i,                'PLO.png',             'PLO'],
-  [/short ?deck|6\+/i,                   'Short-Deck.png',      'Short Deck'],
-  [/hold ?'?em|holdem|full house/i,       'Holdem.png',          "Hold'em"]
-];
-function gameIcon(name){
-  const t = String(name || '');
-  for (const [re, file, label] of GAME_ICONS){
-    if (re.test(t)) return '<img class="gi" src="gg-icons/'+file+'" alt="'+label+'" loading="lazy">';
-  }
-  return '';
-}
 const noteInput = u => '<input class="mail-in u-note" data-act="u-note" data-id="'+u.id+'" '+
   'value="'+esc(u.notes||'')+'" placeholder="הערות" aria-label="הערות לחשבון">';
 /* פרס במזומן, כמו C$4 או $14 T$, נחשב כנוצל מיד */
@@ -583,8 +566,7 @@ function render(){
     const unknown = !String(state.tasks[d-1]||'').trim();
     list += '<li class="q-row'+(here.length?' live':'')+(allDone?' ldone':'')+(unknown?' unknown':'')+
       (flagOf(d)?' tagged':'')+(tagEdit?' tagedit':'')+'">'+
-      cardMark(d, false, here.length ? (allDone ? 'done' : 'todo') : false)+
-      gameIcon(state.tasks[d-1])+btns+
+      cardMark(d, false, here.length ? (allDone ? 'done' : 'todo') : false)+btns+
       '<span class="q-mid">'+badge(d, tagEdit)+
       '<input class="q-name" dir="auto" data-act="task" data-day="'+d+'" value="'+esc(state.tasks[d-1]||'')+'" placeholder="Unknown" aria-label="שם המשימה ליום '+d+'">'+
       prizeLine(d)+'</span>'+
@@ -614,7 +596,6 @@ function render(){
         '</div>').join('');
       const dDone = byDay[d].every(doneToday);
       todayHtml += '<div class="card"><div class="head-row">'+cardMark(d,true,dDone?'done':'todo')+
-        gameIcon(state.tasks[d-1])+
         '<span class="q-mid"><span class="t" dir="auto">'+esc(taskName(d))+'</span>'+prizeLine(d)+'</span>'+badge(d,false)+'</div>'+rows+'</div>';
     });
   }
@@ -627,9 +608,7 @@ function render(){
       const over = nd > TOTAL;
       return '<tr><td>'+token(u)+'</td>'+
         '<td>'+(over ? '<span class="fin">סיום</span>' : cardMark(nd,false,false))+'</td>'+
-        '<td dir="auto">'+(over ? 'כל 30 המשימות הושלמו'
-          : '<span style="display:inline-flex;align-items:center;gap:6px;vertical-align:middle">'+
-            gameIcon(state.tasks[nd-1])+'<span>'+esc(taskName(nd))+'</span></span> '+badge(nd,false))+'</td></tr>';
+        '<td dir="auto">'+(over ? 'כל 30 המשימות הושלמו' : esc(taskName(nd))+' '+badge(nd,false))+'</td></tr>';
     }).join('');
     tomorrow = '<div class="panel pad"><table><thead><tr><th>חשבון</th><th>יום</th><th>המשימה</th></tr></thead>'+
       '<tbody>'+rows+'</tbody></table></div>';
@@ -651,8 +630,7 @@ function render(){
         ? '<div class="done30"><span>\u2714 החשבון סיים את כל 30 המשימות</span>'+
           '<button class="b-gold" data-act="archive" data-id="'+u.id+'">העבר לארכיון</button></div>'
           + noteInput(u)
-        : '<div class="u-line">'+gameIcon(state.tasks[u.day-1])+
-          '<span class="u-task" dir="auto">'+esc(taskName(u.day))+'</span>'+
+        : '<div class="u-line"><span class="u-task" dir="auto">'+esc(taskName(u.day))+'</span>'+
           badge(u.day,false)+noteInput(u)+'</div>')+
       (() => {
         const all = earnedPrizes(u);
