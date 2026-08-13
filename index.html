@@ -241,6 +241,9 @@
     border:1px solid var(--line);border-radius:8px;padding:6px 7px;background:#fff;color:var(--ink);
     font-variant-numeric:tabular-nums}
   .u-note{margin:0 0 9px;font-family:inherit;font-size:13.5px}
+  .prog{display:flex;align-items:center;gap:8px;margin:0 0 9px;font-size:13px;color:var(--soft)}
+  .prog-in{width:48px}
+  .prog-den{font-weight:600}
   .u-line{display:flex;align-items:center;gap:8px;margin:0 0 10px}
   .u-line .u-task{margin:0;flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .u-line .badge{flex:none}
@@ -285,7 +288,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v61';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v62';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -629,6 +632,12 @@ function render(){
           ? '<span class="u-mailtag" dir="ltr" data-act="u-mail-edit" data-id="'+u.id+'" title="לחיצה לעריכה">'+esc(u.email)+'</span>'
           : '')+
         (fin ? '<span class="fin">סיים 30 ימים</span>' : cardMark(u.day,false,dn?'done':'todo'))+'</div>'+
+      (() => {
+        const den = Math.min(TOTAL, u.day || 1);
+        return '<div class="prog"><input class="dayin prog-in" type="number" inputmode="numeric" min="0" max="'+TOTAL+'" '+
+          'data-act="prog-set" data-id="'+u.id+'" value="'+(u.completed||0)+'" aria-label="משימות שהושלמו">'+
+          '<span class="prog-den">מתוך '+den+' הושלמו</span></div>';
+      })()+
       (fin
         ? '<div class="done30"><span>\u2714 החשבון סיים את כל 30 המשימות</span>'+
           '<button class="b-gold" data-act="archive" data-id="'+u.id+'">העבר לארכיון</button></div>'
@@ -757,11 +766,15 @@ document.addEventListener('click', e => {
   if (act === 'add'){
     const i = document.getElementById('newName'), name = (i.value||'').trim();
     if (!name){ i.focus(); return; }
-    state.users.push({id:uid(), name, day:1, doneDay:null, doneDate:null, active:true, dayDate:gameDay()});
+    state.users.push({id:uid(), name, day:1, doneDay:null, doneDate:null, active:true, dayDate:gameDay(), completed:0});
   }
-  else if (act === 'flip' && u){ if (doneToday(u)){ u.doneDay=null; u.doneDate=null; } else { u.doneDay=u.day; u.doneDate=gameDay(); } }
-  else if (act === 'done' && u){ u.doneDay = u.day; u.doneDate = gameDay(); }
-  else if (act === 'undo' && u){ u.doneDay = null; u.doneDate = null; }
+  else if (act === 'flip' && u){
+    if (doneToday(u)){ u.doneDay=null; u.doneDate=null; u.completed = Math.max(0,(u.completed||0)-1); }
+    else { u.doneDay=u.day; u.doneDate=gameDay(); u.completed = (u.completed||0)+1; }
+  }
+  else if (act === 'done' && u){ if (!doneToday(u)) u.completed = (u.completed||0)+1; u.doneDay = u.day; u.doneDate = gameDay(); }
+  else if (act === 'undo' && u){ if (doneToday(u)) u.completed = Math.max(0,(u.completed||0)-1); u.doneDay = null; u.doneDate = null; }
+  else if (act === 'prog-set' ){ /* handled as an input event below */ }
   else if (act === 'plus'  && u){ u.day = Math.min(TOTAL+1, u.day+1); u.doneDay = null; u.doneDate = null; u.dayDate = gameDay(); }
   else if (act === 'minus' && u){ u.day = Math.max(1, u.day-1); u.doneDay = null; u.doneDate = null; u.dayDate = gameDay(); }
   else if (act === 'toggle'&& u){ u.active = u.active === false; }
@@ -786,7 +799,7 @@ document.addEventListener('click', e => {
     if (!confirm('להעביר את "'+u.name+'" לארכיון?')) return;
     state.archive = state.archive || [];
     state.archive.push({ id: uid(), name: u.name, email: u.email || '', deposited: u.money==null?null:u.money,
-      profit: (u.balance==null ? null : u.balance), notes: u.notes || '', day: u.day });
+      profit: (u.balance==null ? null : u.balance), notes: u.notes || '', day: u.day, completed: u.completed || 0 });
     state.users = state.users.filter(x => x.id !== u.id);
     state.folded = state.folded || {}; state.folded.archive = false;
   }
@@ -795,7 +808,7 @@ document.addEventListener('click', e => {
     if (!a) return;
     state.users.push({ id: uid(), name: a.name, day: Math.min(TOTAL, Math.max(1, a.day||1)),
       doneDay: null, doneDate: null, active: true, money: a.deposited, balance: null,
-      email: a.email || '', notes: a.notes || '', dayDate: gameDay() });
+      email: a.email || '', notes: a.notes || '', dayDate: gameDay(), completed: a.completed || 0 });
     state.archive = state.archive.filter(x => x.id !== a.id);
   }
   else if (act === 'clear-tasks'){
@@ -875,6 +888,10 @@ document.addEventListener('input', e => {
   if (el.dataset.act === 'u-note'){
     const u = byId(el.dataset.id);
     if (u){ u.notes = el.value; save(); }
+  }
+  if (el.dataset.act === 'prog-set'){
+    const u = byId(el.dataset.id);
+    if (u){ u.completed = Math.max(0, Math.min(TOTAL, Number(el.value) || 0)); save(); }
   }
   if (el.dataset.act === 'u-mail'){
     const u = byId(el.dataset.id);
