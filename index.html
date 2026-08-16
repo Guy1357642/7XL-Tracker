@@ -222,7 +222,7 @@
   .dayin::-webkit-outer-spin-button,.dayin::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 
   /* money panel: banknote */
-  .panel:has(.m-total){background:
+  .panel:has(.ftab tfoot){background:
       repeating-linear-gradient(58deg, rgba(30,107,74,.07) 0 2px, transparent 2px 7px),
       linear-gradient(180deg,#F6F4E4,#E9EEDD);
     box-shadow:0 0 0 1px rgba(30,107,74,.45), inset 0 0 0 3px rgba(30,107,74,.12),
@@ -280,10 +280,9 @@
     border:1px solid rgba(30,107,74,.45);border-radius:8px;padding:7px 10px;background:#FFFDF2;color:var(--money);
     font-variant-numeric:tabular-nums}
   .m-cur{font-family:"Rubik",sans-serif;font-weight:700;color:var(--money);flex:none;width:14px;text-align:center}
-  .m-total{display:flex;align-items:center;gap:10px;margin:11px -14px -14px;padding:12px 14px;
-    border-radius:0 0 15px 15px;background:linear-gradient(180deg,#2A7D57,var(--money));color:#F7F2E4;
-    font-weight:700;font-size:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.28)}
-  .m-total .v{margin-inline-start:auto;font-family:"Rubik",sans-serif;font-variant-numeric:tabular-nums}
+  .ftab tfoot td{border-top:2px solid #2A2008;padding-top:11px;font-weight:700;
+    font-family:"Rubik",sans-serif;font-variant-numeric:tabular-nums}
+  .ftab tfoot .lbl{color:#8A6B12;letter-spacing:.04em;font-size:13px}
 
   .upbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;gap:10px;
     justify-content:center;padding:11px 14px calc(11px + env(safe-area-inset-bottom));
@@ -302,7 +301,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v73';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v74';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -715,12 +714,15 @@ function render(){
   }).join('');
   const tDep = state.users.reduce((a,u) => a + (Number(u.money)||0), 0);
   const tCur = state.users.reduce((a,u) => a + (Number(u.balance)||0), 0);
+  const tPl = tCur - tDep;
   const moneyHtml = state.users.length
     ? '<div class="panel pad"><table class="ftab"><thead><tr><th>Account</th><th>Deposited</th><th>Current</th><th>P&amp;L</th></tr></thead>'+
-      '<tbody>'+fRows+'</tbody></table>'+
-      '<div class="m-total"><span>Total</span><span class="v" dir="ltr">'+esc(cur)+' <span id="ftot-dep">'+tDep.toLocaleString('he-IL')+'</span>'+
-      ' \u2192 '+esc(cur)+' <span id="ftot-cur">'+tCur.toLocaleString('he-IL')+'</span>'+
-      ' ('+esc(cur)+' <span id="ftot-pl">'+(tCur-tDep).toLocaleString('he-IL')+'</span>)</span></div></div>'
+      '<tbody>'+fRows+'</tbody>'+
+      '<tfoot><tr><td class="lbl">Total</td>'+
+      '<td dir="ltr">'+esc(cur)+' <span id="ftot-dep">'+tDep.toLocaleString('he-IL')+'</span></td>'+
+      '<td dir="ltr">'+esc(cur)+' <span id="ftot-cur">'+tCur.toLocaleString('he-IL')+'</span></td>'+
+      '<td class="pl'+(tPl>0?' pos':(tPl<0?' neg':''))+'" dir="ltr">'+(tPl>0?'+':'')+esc(cur)+' <span id="ftot-pl">'+tPl.toLocaleString('he-IL')+'</span></td>'+
+      '</tr></tfoot></table></div>'
     : '<div class="empty">אין חשבונות פעילים להזין להם סכומים.</div>';
 
   /* 6 · Archive */
