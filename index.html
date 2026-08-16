@@ -167,8 +167,9 @@
   .tt-half{min-width:0;display:flex;align-items:center;gap:5px}
   .tt-today{flex:1.35;padding-inline-end:8px}
   .tt-tmrw{flex:1;padding-inline-start:8px;opacity:.65}
-  .tt-name{flex:1;min-width:0;font-family:"Rubik",sans-serif;font-size:12.5px;white-space:nowrap;
-    overflow:hidden;text-overflow:ellipsis}
+  .tt-name{flex:1;min-width:0;display:flex;align-items:center;gap:5px;font-family:"Rubik",sans-serif;
+    font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tt-name .badge{font-size:7px;padding:1px 4px;flex:none;line-height:1.5}
   .tt-today .mini{font-size:10.5px;padding:5px 9px}
   .tt-div{width:1px;align-self:stretch;background:var(--brass);flex:none;margin:0 1px}
   .p-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px dashed rgba(26,38,32,.18)}
@@ -301,7 +302,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v70';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v72';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -342,6 +343,22 @@ const KNOWN_TASKS = {
 };
 const DEFAULT_TASKS = Array.from({length:30}, (_, i) => KNOWN_TASKS[i+1] || '');
 const TASK_VERSION = 1;   /* מעלים כדי לדרוס את שמות המשימות במכשירים */
+/* כינוי קצר לכל משימה, לתצוגה בקטע היום ומחר שבו אין הרבה מקום */
+const NICKNAMES = {
+  1:'50 R&C', 2:'60 R&C', 3:'70 R&C', 4:'80 R&C', 5:'90 R&C', 6:'S&G x3', 7:'50 AoF',
+  8:'80 R&C', 9:'90 R&C', 10:'100 R&C', 11:'125 R&C', 12:'150 R&C', 13:'Daily GTD',
+  14:'30 S&G', 15:'150 R&C', 16:'200 R&C', 17:'250 R&C', 18:'300 R&C', 19:'350 R&C',
+  20:'Bounty', 21:'S&G x10', 22:'AA in AoF', 23:'400 R&C', 24:'50 S&G', 25:'FH Holdem',
+  26:'Win Trny', 27:'450 R&C', 28:'Quad PLO', 29:'500 R&C', 30:'Jackpot'
+};
+const taskNick = d => NICKNAMES[d] || taskName(d);
+/* תגית זעירה לקטע היום ומחר. Easy לא מוצג כדי לחסוך מקום, רק חריגים */
+function miniBadge(d){
+  const f = flagOf(d);
+  if (!f || f === 'easy') return '';
+  const label = f === 'no' ? 'Skip' : FLAG_TEXT[f];
+  return '<span class="badge '+f+'">'+label+'</span>';
+}
 /* ימים שצריך לנקות פעם אחת אצל כולם, למשל אחרי טעות */
 const TASK_FIX_VERSION = 11;
 const CLEAR_DAYS = [22];
@@ -612,12 +629,12 @@ function render(){
     const rows = running.slice().sort((a,b) => a.day - b.day).map(u => {
       const nd = u.day + 1, over = nd > TOTAL, dn = doneToday(u);
       const todayHalf = '<div class="tt-half tt-today">'+token(u,dn?' done':'')+
-        '<span class="tt-name" dir="auto">'+esc(taskName(u.day))+'</span>'+
+        '<span class="tt-name" dir="auto">'+esc(taskNick(u.day))+miniBadge(u.day)+'</span>'+
         '<button class="mini'+(dn?' ok':'')+'" data-act="flip" data-id="'+u.id+'">'+
           (dn?'<b>\u2713</b> Done':'To Do')+'</button></div>';
       const tmrwHalf = '<div class="tt-half tt-tmrw">'+
-        (over ? '<span class="fin">סיום</span><span class="tt-name" dir="auto">כל 30 המשימות הושלמו</span>'
-          : cardMark(nd,false,false)+'<span class="tt-name" dir="auto">'+esc(taskName(nd))+'</span>')+
+        (over ? '<span class="fin">סיום</span><span class="tt-name" dir="auto">כל 30 הימים</span>'
+          : cardMark(nd,false,false)+'<span class="tt-name" dir="auto">'+esc(taskNick(nd))+miniBadge(nd)+'</span>')+
         '</div>';
       return '<div class="tt-row">'+todayHalf+'<div class="tt-div"></div>'+tmrwHalf+'</div>';
     }).join('');
