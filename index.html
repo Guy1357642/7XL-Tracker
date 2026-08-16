@@ -283,6 +283,9 @@
   .ftab tfoot td{border-top:2px solid #2A2008;padding-top:11px;font-weight:700;
     font-family:"Rubik",sans-serif;font-variant-numeric:tabular-nums}
   .ftab tfoot .lbl{color:#8A6B12;letter-spacing:.04em;font-size:13px}
+  /* אותו רוחב ואותה יישור כמו תיבת הקלט שמעליה, כדי שהספרות יתיישרו בדיוק */
+  .fin-tot{display:inline-block;width:74px;padding:6px 7px;text-align:left;direction:ltr;
+    box-sizing:border-box;font-family:"Rubik",sans-serif;font-weight:700;font-variant-numeric:tabular-nums}
 
   .upbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;gap:10px;
     justify-content:center;padding:11px 14px calc(11px + env(safe-area-inset-bottom));
@@ -301,7 +304,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v74';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v75';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -719,8 +722,8 @@ function render(){
     ? '<div class="panel pad"><table class="ftab"><thead><tr><th>Account</th><th>Deposited</th><th>Current</th><th>P&amp;L</th></tr></thead>'+
       '<tbody>'+fRows+'</tbody>'+
       '<tfoot><tr><td class="lbl">Total</td>'+
-      '<td dir="ltr">'+esc(cur)+' <span id="ftot-dep">'+tDep.toLocaleString('he-IL')+'</span></td>'+
-      '<td dir="ltr">'+esc(cur)+' <span id="ftot-cur">'+tCur.toLocaleString('he-IL')+'</span></td>'+
+      '<td><span class="fin-tot">'+esc(cur)+' <span id="ftot-dep">'+tDep.toLocaleString('he-IL')+'</span></span></td>'+
+      '<td><span class="fin-tot">'+esc(cur)+' <span id="ftot-cur">'+tCur.toLocaleString('he-IL')+'</span></span></td>'+
       '<td class="pl'+(tPl>0?' pos':(tPl<0?' neg':''))+'" dir="ltr">'+(tPl>0?'+':'')+esc(cur)+' <span id="ftot-pl">'+tPl.toLocaleString('he-IL')+'</span></td>'+
       '</tr></tfoot></table></div>'
     : '<div class="empty">אין חשבונות פעילים להזין להם סכומים.</div>';
