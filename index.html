@@ -302,7 +302,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v72';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v73';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -816,9 +816,13 @@ document.addEventListener('click', e => {
   else if (act === 'u-mail-edit' && u){ mailEdit[u.id] = true; }
   else if (act === 'archive' && u){
     if (!confirm('להעביר את "'+u.name+'" לארכיון?')) return;
+    const ask = prompt('כמה כסף היה בחשבון בסיום?', u.balance == null ? '' : String(u.balance));
+    if (ask === null) return;   /* ביטול */
+    const askNum = Number(String(ask).trim());
+    const ended = String(ask).trim() === '' ? null : (isNaN(askNum) ? (u.balance==null?null:u.balance) : askNum);
     state.archive = state.archive || [];
     state.archive.push({ id: uid(), name: u.name, email: u.email || '', deposited: u.money==null?null:u.money,
-      profit: (u.balance==null ? null : u.balance), notes: u.notes || '', day: u.day, completed: u.completed || 0 });
+      profit: ended, notes: u.notes || '', day: u.day, completed: u.completed || 0 });
     state.users = state.users.filter(x => x.id !== u.id);
     state.folded = state.folded || {}; state.folded.archive = false;
   }
