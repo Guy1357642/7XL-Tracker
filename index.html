@@ -304,7 +304,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v75';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v76';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -719,12 +719,12 @@ function render(){
   const tCur = state.users.reduce((a,u) => a + (Number(u.balance)||0), 0);
   const tPl = tCur - tDep;
   const moneyHtml = state.users.length
-    ? '<div class="panel pad"><table class="ftab"><thead><tr><th>Account</th><th>Deposited</th><th>Current</th><th>P&amp;L</th></tr></thead>'+
+    ? '<div class="panel pad"><table class="ftab"><thead><tr><th>Account</th><th>Deposited</th><th>Current</th><th>Profit</th></tr></thead>'+
       '<tbody>'+fRows+'</tbody>'+
       '<tfoot><tr><td class="lbl">Total</td>'+
       '<td><span class="fin-tot">'+esc(cur)+' <span id="ftot-dep">'+tDep.toLocaleString('he-IL')+'</span></span></td>'+
       '<td><span class="fin-tot">'+esc(cur)+' <span id="ftot-cur">'+tCur.toLocaleString('he-IL')+'</span></span></td>'+
-      '<td class="pl'+(tPl>0?' pos':(tPl<0?' neg':''))+'" dir="ltr">'+(tPl>0?'+':'')+esc(cur)+' <span id="ftot-pl">'+tPl.toLocaleString('he-IL')+'</span></td>'+
+      '<td class="pl'+(tPl>0?' pos':(tPl<0?' neg':''))+'" id="ftot-pl-cell">'+(tPl>0?'+':'')+tPl.toLocaleString('he-IL')+'</td>'+
       '</tr></tfoot></table></div>'
     : '<div class="empty">אין חשבונות פעילים להזין להם סכומים.</div>';
 
