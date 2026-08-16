@@ -160,6 +160,17 @@
 
   .head-row{display:flex;align-items:center;gap:11px;margin-bottom:4px}
   .head-row .t{font-weight:700;font-size:16px;flex:1;min-width:0}
+  .tt-head{display:flex;padding:8px 12px 2px;font-family:"Rubik",sans-serif;font-size:10px;
+    font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+  .tt-head span{flex:1;text-align:center}
+  .tt-row{display:flex;align-items:center;padding:9px 10px;border-top:1px dashed rgba(26,38,32,.18)}
+  .tt-half{min-width:0;display:flex;align-items:center;gap:5px}
+  .tt-today{flex:1.35;padding-inline-end:8px}
+  .tt-tmrw{flex:1;padding-inline-start:8px;opacity:.65}
+  .tt-name{flex:1;min-width:0;font-family:"Rubik",sans-serif;font-size:12.5px;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+  .tt-today .mini{font-size:10.5px;padding:5px 9px}
+  .tt-div{width:1px;align-self:stretch;background:var(--brass);flex:none;margin:0 1px}
   .p-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px dashed rgba(26,38,32,.18)}
   .p-row .n{flex:1;font-weight:700}
   .ok{font-size:13px;font-weight:700;color:var(--money)}
@@ -290,7 +301,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v68';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v70';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -593,40 +604,25 @@ function render(){
     '<span class="badge hard">Hard</span><span class="badge easy">Easy</span>'+
     '<span class="badge no">Do Not Do</span></div></div>';
 
-  /* 2 · היום */
-  const byDay = {};
-  running.forEach(u => (byDay[u.day] = byDay[u.day]||[]).push(u));
-  const days = Object.keys(byDay).map(Number).sort((a,b)=>a-b);
+  /* 2+3 · היום ומחר, כרטיס מפוצל אחד לכל חשבון */
   let todayHtml = '';
   if (!running.length){
     todayHtml = '<div class="empty">אין חשבונות פעילים. הוסיפו חשבון בקטע "החשבונות".</div>';
   } else {
-    days.forEach(d => {
-      const rows = byDay[d].map(u =>
-        '<div class="p-row">'+token(u,doneToday(u)?' done':'')+'<span class="n">'+esc(u.name)+'</span>'+
-        '<button class="mini'+(doneToday(u)?' ok':'')+'" data-act="flip" data-id="'+u.id+'">'+
-          (doneToday(u)?'<b>\u2713</b> Done':'To Do')+'</button>'+
-        '</div>').join('');
-      const dDone = byDay[d].every(doneToday);
-      todayHtml += '<div class="card"><div class="head-row">'+cardMark(d,true,dDone?'done':'todo')+
-        '<span class="q-mid"><span class="t" dir="auto">'+esc(taskName(d))+'</span>'+prizeLine(d)+'</span>'+badge(d,false)+'</div>'+rows+'</div>';
-    });
-  }
-
-  /* 3 · מחר */
-  let tomorrow = '';
-  if (running.length){
     const rows = running.slice().sort((a,b) => a.day - b.day).map(u => {
-      const nd = u.day + 1;
-      const over = nd > TOTAL;
-      return '<tr><td>'+token(u)+'</td>'+
-        '<td>'+(over ? '<span class="fin">סיום</span>' : cardMark(nd,false,false))+'</td>'+
-        '<td dir="auto">'+(over ? 'כל 30 המשימות הושלמו' : esc(taskName(nd))+' '+badge(nd,false))+'</td></tr>';
+      const nd = u.day + 1, over = nd > TOTAL, dn = doneToday(u);
+      const todayHalf = '<div class="tt-half tt-today">'+token(u,dn?' done':'')+
+        '<span class="tt-name" dir="auto">'+esc(taskName(u.day))+'</span>'+
+        '<button class="mini'+(dn?' ok':'')+'" data-act="flip" data-id="'+u.id+'">'+
+          (dn?'<b>\u2713</b> Done':'To Do')+'</button></div>';
+      const tmrwHalf = '<div class="tt-half tt-tmrw">'+
+        (over ? '<span class="fin">סיום</span><span class="tt-name" dir="auto">כל 30 המשימות הושלמו</span>'
+          : cardMark(nd,false,false)+'<span class="tt-name" dir="auto">'+esc(taskName(nd))+'</span>')+
+        '</div>';
+      return '<div class="tt-row">'+todayHalf+'<div class="tt-div"></div>'+tmrwHalf+'</div>';
     }).join('');
-    tomorrow = '<div class="panel pad"><table><thead><tr><th>חשבון</th><th>יום</th><th>המשימה</th></tr></thead>'+
-      '<tbody>'+rows+'</tbody></table></div>';
-  } else {
-    tomorrow = '<div class="empty">יופיע כאן ברגע שיהיו חשבונות פעילים.</div>';
+    todayHtml = '<div class="panel">'+
+      '<div class="tt-head"><span>היום</span><span>מחר</span></div>'+rows+'</div>';
   }
 
   /* 4 · החשבונות */
@@ -733,8 +729,7 @@ function render(){
       '<p class="hint">אפשר ללחוץ על כל שם משימה ולערוך אותו. '+
       '<button class="ghost cream" data-act="tagmode">'+(tagEdit?'סיום עריכת תגיות':'עריכת תגיות')+'</button>'+
       '<button class="ghost cream" data-act="clear-tasks">נקה שמות ותגיות</button></p>'+ listPanel)+
-    H('today','\u2665','המשימות של היום',1)+ (isFolded('today') ? '' : todayHtml)+
-    H('tomorrow','\u2666','המשימות של מחר',1)+ (isFolded('tomorrow') ? '' : tomorrow)+
+    H('today','\u2665','היום ומחר',1)+ (isFolded('today') ? '' : todayHtml)+
     H('accounts','\u2663','החשבונות')+ (isFolded('accounts') ? '' : usersHtml)+
     H('finance', esc(state.currency), 'Finance')+
       (isFolded('finance') ? '' : moneyHtml)+
