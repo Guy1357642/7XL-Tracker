@@ -268,6 +268,9 @@
   .u-mailtag{flex:1;min-width:0;font-family:"Rubik",sans-serif;font-size:11.5px;color:var(--soft);
     background:rgba(26,38,32,.06);border:1px solid var(--line);border-radius:7px;padding:3px 8px;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+  .trial-tag{flex:none;font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    color:#8A6B12;border:1px solid #C9A227;background:rgba(201,162,39,.14);border-radius:99px;
+    padding:2px 7px}
   .mail-in{width:100%;min-width:90px;direction:ltr;font-family:inherit;font-size:13px;
     border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff;color:var(--ink)}
   .pl{font-family:"Rubik",sans-serif;font-weight:700;font-variant-numeric:tabular-nums;font-size:14px}
@@ -304,7 +307,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v76';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v77';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -575,7 +578,10 @@ function rollover(){
   state.users.forEach(u => {
     if (!u.dayDate){ u.dayDate = t; return; }
     if (u.dayDate < t){
-      u.day = Math.min(TOTAL + 1, u.day + dayDiff(u.dayDate, t));
+      let diff = dayDiff(u.dayDate, t);
+      /* חשבון חדש מקבל יום חינם: המעבר הראשון בין ימים לא מקדם אותו */
+      if (u.grace){ diff = Math.max(0, diff - 1); u.grace = false; }
+      u.day = Math.min(TOTAL + 1, u.day + diff);
       u.dayDate = t;
       u.doneDay = null; u.doneDate = null;
     }
@@ -650,6 +656,7 @@ function render(){
     return '<div class="card'+(u.active===false?' paused':'')+'">'+
       '<div class="u-head">'+token(u,dn?' done':'')+
         '<input class="u-name" data-act="rename" data-id="'+u.id+'" value="'+esc(u.name)+'" aria-label="שם החשבון">'+
+        (u.grace ? '<span class="trial-tag" title="יום ראשון עם מרווח ביטחון">Trial</span>' : '')+
         ((String(u.email||'').trim() && !mailEdit[u.id])
           ? '<span class="u-mailtag" dir="ltr" data-act="u-mail-edit" data-id="'+u.id+'" title="לחיצה לעריכה">'+esc(u.email)+'</span>'
           : '')+
@@ -790,7 +797,7 @@ document.addEventListener('click', e => {
   if (act === 'add'){
     const i = document.getElementById('newName'), name = (i.value||'').trim();
     if (!name){ i.focus(); return; }
-    state.users.push({id:uid(), name, day:1, doneDay:null, doneDate:null, active:true, dayDate:gameDay(), completed:0});
+    state.users.push({id:uid(), name, day:1, doneDay:null, doneDate:null, active:true, dayDate:gameDay(), completed:0, grace:true});
   }
   else if (act === 'flip' && u){
     if (doneToday(u)){ u.doneDay=null; u.doneDate=null; u.completed = Math.max(0,(u.completed||0)-1); }
@@ -836,7 +843,7 @@ document.addEventListener('click', e => {
     if (!a) return;
     state.users.push({ id: uid(), name: a.name, day: Math.min(TOTAL, Math.max(1, a.day||1)),
       doneDay: null, doneDate: null, active: true, money: a.deposited, balance: null,
-      email: a.email || '', notes: a.notes || '', dayDate: gameDay(), completed: a.completed || 0 });
+      email: a.email || '', notes: a.notes || '', dayDate: gameDay(), completed: a.completed || 0, grace: false });
     state.archive = state.archive.filter(x => x.id !== a.id);
   }
   else if (act === 'clear-tasks'){
