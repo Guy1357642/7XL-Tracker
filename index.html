@@ -271,6 +271,7 @@
   .trial-tag{flex:none;font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
     color:#8A6B12;border:1px solid #C9A227;background:rgba(201,162,39,.14);border-radius:99px;
     padding:2px 7px}
+  .trial-tag.sm{font-size:7px;padding:1px 5px;margin-inline-start:4px;vertical-align:middle}
   .mail-in{width:100%;min-width:90px;direction:ltr;font-family:inherit;font-size:13px;
     border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff;color:var(--ink)}
   .pl{font-family:"Rubik",sans-serif;font-weight:700;font-variant-numeric:tabular-nums;font-size:14px}
@@ -307,7 +308,7 @@
 <script>
 /* ============ config ============ */
 const KEY = 'thirty-day-tracker-v2';
-const BUILD = 'v77';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
+const BUILD = 'v78';   /* מוצג בתחתית, כדי לזהות איזו גרסה טעונה */
 const TOTAL = 30;
 /* המשחק מתאפס ב-00:00 UTC, ולכן יום המשחק הוא פשוט התאריך ב-UTC */
 const SUITS = ['\u2660','\u2665','\u2666','\u2663'];
@@ -611,7 +612,8 @@ function render(){
       (doneToday(u)?'<b>\u2713</b> Done':'To Do')+(many?' '+esc(u.name):'')+'</button>').join('');
     const unknown = !String(state.tasks[d-1]||'').trim();
     const progLine = here.length
-      ? '<span class="prog-mini">'+here.map(u => esc(u.name)+': '+Math.min(d, u.completed||0)+'/'+d).join(' \u00B7 ')+'</span>'
+      ? '<span class="prog-mini">'+here.map(u => esc(u.name)+': '+Math.min(d, u.completed||0)+'/'+d+
+          (u.grace ? '<span class="trial-tag sm">Trial</span>' : '')).join(' \u00B7 ')+'</span>'
       : '';
     list += '<li class="q-row'+(here.length?' live':'')+(allDone?' ldone':'')+(unknown?' unknown':'')+
       (flagOf(d)?' tagged':'')+(tagEdit?' tagedit':'')+'">'+
